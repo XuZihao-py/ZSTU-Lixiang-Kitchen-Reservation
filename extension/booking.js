@@ -1,0 +1,303 @@
+(() => {
+  const { normalizeSlot, candidateKitchens } = KitchenPlan;
+  const INDEX = '#/featuredStalls/roomReserve/Index';
+  const FORM = '#/featuredStalls/roomReserve/ReserveForm';
+  const BOOKING_ROOT = 'https://zhst.zstu.edu.cn/statusweb/h5/universityFrontOfficeProgram/';
+  const query = (selector, root = document) => root.querySelector(selector);
+  const all = (selector, root = document) => [...root.querySelectorAll(selector)];
+  const text = element => element?.textContent.trim() ?? '';
+  const hashIs = route => location.hash.split('?')[0] === route;
+  const visible = element => Boolean(element?.getClientRects().length && getComputedStyle(element).visibility !== 'hidden');
+  const find = (selector, predicate, root = document) =>
+    all(selector, root).find(element => visible(element) && predicate(element));
+  const cards = () => all('.room-reserve .room-card').filter(visible);
+  const pause = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+  const field = name => find('.reserve-form .field-card', card => text(query('.field-card-label', card)) === name);
+  const kitchenId = value => value.match(/(?:XS|LP)-\d{2}$/i)?.[0].toUpperCase();
+  const outcome = (state, message) => ({ state, message });
+
+  async function runBooking(plan, tell, signal) {
+    const targetSlot = plan.start + '~' + plan.end;
+    let committed = false;
+
+    function guard() {
+      if (signal.aborted) throw new Error('任务已停止。');
+      if (Date.now() >= plan.deadline) throw new Error('预约尝试窗口已结束。');
+    }
+
+    async function waitFor(check, error, timeout = 10_000) {
+      const until = Date.now() + timeout;
+      do {
+        guard();
+        const value = check();
+        if (value) return value;
+        await pause(120);
+      } while (Date.now() < until);
+      throw new Error(error);
+    }
+
+    function click(element) {
+      guard();
+      if (!visible(element) || element.matches('.disabled, .disabled-row, :disabled, [aria-disabled="true"]')) {
+        throw new Error('预约页控件当前不可用。');
+      }
+      element.click();
+    }
+
+    function calendarMonth() {
+      const heading = find('.uni-calendar__header-text', () => true);
+      const month = text(heading).match(/(\d{4})\D+(\d{1,2})/);
+      return month ? Number(month[1]) * 12 + Number(month[2]) - 1 : null;
+    }
+
+    async function selectDate() {
+      const previous = cards();
+      const previousEmpty = find('.yq-uni-p-r-list .no-data', () => true);
+      click(await waitFor(() => find('.date-bar .uni-date-editor', () => true),
+        '找不到预约日历，请检查登录状态和预约页。'));
+      const [year, month, day] = plan.date.split('-').map(Number);
+      const requested = year * 12 + month - 1;
+      let displayed = await waitFor(calendarMonth, '预约日历未加载。');
+      for (let changes = 0; changes < 2 && displayed !== requested; changes++) {
+        const direction = displayed < requested ? 'right' : 'left';
+        const arrow = find('.uni-calendar--' + direction, () => true);
+        if (!arrow) break;
+        click(arrow.closest('.uni-calendar__header-btn-box, button') || arrow);
+        const lastMonth = displayed;
+        displayed = await waitFor(() => {
+          const next = calendarMonth();
+          return next !== null && next !== lastMonth ? next : null;
+        }, '预约日历月份未切换。');
+      }
+      if (displayed !== requested) throw new Error('预约日历未显示目标月份。');
+
+      const firstWeekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+      const boxes = all('.uni-calendar-item__weeks-box').filter(visible);
+      const dayText = box => Number(text(query('.uni-calendar-item__weeks-box-text', box)));
+      const indexed = boxes[firstWeekday + day - 1];
+      const matching = boxes.filter(box => dayText(box) === day && !box.classList.contains('uni-calendar-item--disable'));
+      const selected = indexed && dayText(indexed) === day ? indexed : matching.length === 1 ? matching[0] : null;
+      if (!selected || selected.classList.contains('uni-calendar-item--disable')) {
+        throw new Error('目标日期暂不可选，请检查页面放号状态。');
+      }
+      click(selected);
+      await pause(150);
+      const confirm = find('.uni-datetime-picker--btn', button => /^(确认|确定)$/.test(text(button)));
+      if (confirm) click(confirm);
+      await waitFor(() => {
+        const current = cards();
+        const currentEmpty = find('.yq-uni-p-r-list .no-data', () => true);
+        return current.some(card => !previous.includes(card)) ||
+          (currentEmpty && currentEmpty !== previousEmpty);
+      }, '未等到目标日期的厨房列表。', 18_000);
+    }
+
+    function availableRooms() {
+      return cards().map(card => ({
+        card,
+        id: kitchenId(text(query('.title', card))),
+        capacity: Number(text(query('.room-card-bot .count, .count', card))),
+        bookable: /^(预订|预约)$/.test(text(query('.btn-apply', card))) ?
+          all('.slot-tag.bookable', card).map(tag => normalizeSlot(text(tag))) : []
+      }));
+    }
+
+    function matchesForm(id) {
+      const params = new URLSearchParams(location.hash.split('?')[1]);
+      const date = text(query('.field-card-value', field('预约日期') ?? document));
+      const monthDay = date.match(/^(\d{1,2})[-/月](\d{1,2})/);
+      const observed = monthDay?.slice(1).map(part => part.padStart(2, '0')).join('-');
+      return hashIs(FORM) && kitchenId(text(query('.reserve-form .title-text'))) === id &&
+        params.get('appDate') === plan.date && observed === plan.date.slice(5);
+    }
+
+    function peopleButton() {
+      const section = find('.reserve-form .field-item', node => text(query('.field-item-title', node)) === '用餐人数');
+      return section && find('.option-item', item => text(item).replace(/\s/g, '') === plan.people + '人', section);
+    }
+
+    function contactReady() {
+      const value = field('联系人');
+      const contact = value && query('.field-card-value', value);
+      return Boolean(contact && !query('.error', contact) && text(contact).includes('，') &&
+        text(contact).split('，').every(part => part.trim()));
+    }
+
+    async function confirmNotice() {
+      const bar = find('.reserve-form .agreement-bar', () => true);
+      const titles = bar ? all('.agreement-name', bar) : [];
+      if (titles.length !== 1 || !text(titles[0]).includes('安全文明使用须知') ||
+          !text(titles[0]).includes('理享厨房')) {
+        return false;
+      }
+      if (query('.agreement-check.checked', bar)) return true;
+      click(bar);
+      const button = await waitFor(() => find('.agreement-footer .agreement-btn', () => true), '安全须知未打开。');
+      await tell('progress', { message: '正在等待安全须知阅读条件完成。' });
+      let ready;
+      try {
+        ready = await waitFor(() => {
+          const scroll = find('.agreement-scroll', () => true);
+          if (scroll) {
+            const view = [scroll, ...all('.uni-scroll-view', scroll)].find(element =>
+              element.scrollHeight > element.clientHeight + 2 && /auto|scroll/.test(getComputedStyle(element).overflowY));
+            if (view && view.scrollTop < view.scrollHeight - view.clientHeight - 2) {
+              view.scrollTo({ top: view.scrollHeight, behavior: 'instant' });
+            }
+          }
+          const current = find('.agreement-footer .agreement-btn', item =>
+            text(item) === '确定已知悉' && !item.classList.contains('disabled'));
+          return button.isConnected && current;
+        }, '安全须知尚未满足页面要求。', 38_000);
+      } catch (error) {
+        if (signal.aborted) throw error;
+        return false;
+      }
+      click(ready);
+      await waitFor(() => query('.reserve-form .agreement-check.checked'), '站点未确认须知阅读状态。');
+      return true;
+    }
+
+    function receipt() {
+      if (location.hash.includes('/roomReserve/ReservePay')) {
+        return outcome('manual', '站点已进入付款页，请人工查看。');
+      }
+      const label = find('uni-toast, uni-modal, [role="alert"], uni-text, span, div', element =>
+        /^(预约成功|预约失败)$/.test(text(element)));
+      if (text(label) === '预约成功') return outcome('success', '站点已显示「预约成功」。');
+      if (text(label) === '预约失败') return outcome('failed', '站点显示「预约失败」。');
+      return null;
+    }
+
+    function chooseIndex() {
+      return waitFor(() => hashIs(INDEX) && query('.room-reserve .date-bar') &&
+        (cards().length || find('.yq-uni-p-r-list .no-data', () => true)),
+      '未加载共享厨房列表，请检查校园网络及登录状态。', 24_000);
+    }
+
+    async function chooseSlot(preferred) {
+      click(preferred.card);
+      await waitFor(() => matchesForm(preferred.id), '厨房或日期未与计划匹配，请人工查看。');
+      click(await waitFor(() => field('预约时段'), '预约表单未提供时段选择。'));
+      const popup = await waitFor(() => find('.time-slot-popup-main', () => true), '时段选择窗口未打开。');
+      await waitFor(() => find('.slot-item, .empty-tip', () => true, popup), '时段数据未加载。');
+      const row = find('.slot-item', item => normalizeSlot(text(query('.slot-time', item))) === targetSlot, popup);
+      if (!row || row.classList.contains('disabled-row') || query('.checkbox.disabled', row)) return false;
+
+      if (!query('.checkbox.checked', row)) click(row);
+      await waitFor(() => query('.checkbox.checked', row), '站点未选中目标时段。');
+      click(find('.footer .btn', button => text(button) === '确认选择', popup));
+      await waitFor(correctSlot, '预约表单未保留目标时段。');
+      return true;
+    }
+
+    function correctSlot() {
+      const slot = field('预约时段');
+      return Boolean(slot && normalizeSlot(text(query('.field-card-value', slot))) === targetSlot);
+    }
+
+    async function chooseKitchen() {
+      const attempted = new Set();
+      while (attempted.size < plan.kitchens.length) {
+        await chooseIndex();
+        await selectDate();
+        const [preferred] = candidateKitchens(plan, availableRooms()).filter(room => !attempted.has(room.id));
+        if (!preferred) return null;
+        if (await chooseSlot(preferred)) return preferred;
+        attempted.add(preferred.id);
+        guard();
+        history.back();
+        await waitFor(() => hashIs(INDEX), '无法返回厨房列表，请人工查看。');
+      }
+      return null;
+    }
+
+    try {
+      const preferred = await chooseKitchen();
+      if (!preferred) return outcome('unavailable', '所选厨房的目标时段没有可用名额。');
+
+      const people = await waitFor(peopleButton, '所选人数未出现在预约表单中。');
+      if (!people.classList.contains('actived')) click(people);
+      await waitFor(() => peopleButton()?.classList.contains('actived'), '站点未保存所选人数。');
+      if (!contactReady() || field('补充信息')) {
+        return outcome('manual', '请核对联系人、人数或站点要求的补充信息。');
+      }
+      if (!await confirmNotice()) return outcome('manual', '请在预约页人工查看并确认使用须知。');
+
+      const verifiedSubmit = () => matchesForm(preferred.id) && correctSlot() &&
+        peopleButton()?.classList.contains('actived') && contactReady() && !field('补充信息') &&
+        query('.reserve-form .agreement-check.checked') &&
+        find('.reserve-form .btn-confirm', button => text(button) === '确认预约');
+      if (!verifiedSubmit()) return outcome('manual', '提交前的表单状态发生变化，请人工查看。');
+
+      guard();
+      const permission = await tell('commit');
+      if (!permission.ok) return outcome('cancelled', '任务已停止或本次提交已锁定。');
+      const submit = verifiedSubmit();
+      if (!submit) return outcome('failed', '确认前表单发生变化，任务已停止。');
+      committed = true;
+      click(submit);
+      return await waitFor(receipt, '未收到明确回执。', 20_000);
+    } catch (error) {
+      if (signal.aborted && !committed) return outcome('cancelled', '任务已停止。');
+      if (committed) return outcome('uncertain', '已尝试确认预约，请在「我的预约」核对结果。');
+      return outcome('failed', error.message);
+    }
+  }
+
+  globalThis.KitchenBooking = { runBooking };
+  if (!globalThis.chrome?.runtime?.id || !location.href.startsWith(BOOKING_ROOT)) return;
+
+  let timer;
+  let runner;
+  let readyFor;
+  const send = (kind, plan, details = {}) => chrome.runtime.sendMessage({
+    kind, id: plan.id, runner: runner?.id, ...details
+  });
+  const readPlan = async () => (await chrome.storage.local.get('plan')).plan;
+
+  async function start(plan) {
+    if (runner) return;
+    const active = { id: crypto.randomUUID(), planId: plan.id, controller: new AbortController() };
+    runner = active;
+    try {
+      const claim = await send('claim', plan);
+      if (!claim.ok) return;
+      const result = await runBooking(plan, (kind, details) => send(kind, plan, details), active.controller.signal);
+      if (result.state !== 'cancelled') await send('result', plan, result);
+    } catch (error) {
+      console.warn('预约助手无法更新任务状态', error);
+    } finally {
+      if (runner === active) runner = undefined;
+    }
+  }
+
+  async function arm(plan) {
+    clearTimeout(timer);
+    if (![ 'preparing', 'waiting', 'running', 'submitting' ].includes(plan?.state)) {
+      runner?.controller.abort();
+      return;
+    }
+    if (runner || plan.state === 'submitting') return;
+    if (!hashIs(INDEX)) return;
+    const ping = await send('check-tab', plan).catch(() => null);
+    if (!ping?.ok || (plan.state === 'running' && !ping.resume)) return;
+    if (plan.state === 'preparing' && cards().length && readyFor !== plan.id) {
+      readyFor = plan.id;
+      await send('ready', plan).catch(() => null);
+    }
+    const next = Math.max(0, plan.startAt - Date.now());
+    timer = setTimeout(async () => {
+      const current = await readPlan();
+      if (current?.id === plan.id && ['preparing', 'waiting', 'running'].includes(current.state)) await start(current);
+    }, next);
+  }
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.plan) arm(changes.plan.newValue).catch(console.warn);
+  });
+  const check = () => readPlan().then(arm).catch(console.warn);
+  chrome.runtime.onMessage.addListener(message => { if (message.kind === 'wakeup') check(); });
+  window.addEventListener('hashchange', check);
+  check();
+})();

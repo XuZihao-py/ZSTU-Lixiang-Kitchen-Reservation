@@ -1,0 +1,175 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>预约页面交互演练</title>
+<style>
+  .agreement-scroll { height: 90px; overflow: auto; }
+  .agreement-img { height: 300px; width: 150px; }
+  button, section, article { display: block; }
+</style>
+<pre id="results">PENDING</pre>
+<main></main>
+<script src="../extension/rules.js"></script>
+<script src="../extension/booking.js"></script>
+<script>
+(async () => {
+  const lab = document.querySelector('main');
+  const results = document.querySelector('#results');
+  const assert = (condition, message) => { if (!condition) throw new Error(message); };
+  function install(mode) {
+    let submitted = 0;
+    let chosen = '';
+    let selected = false;
+    let agreementReady = false;
+    const plan = {
+      date: '2026-12-01', start: '16:00', end: '18:30', people: 9,
+      kitchens: ['XS-03', 'XS-02', 'XS-01'], deadline: Date.now() + 15_000
+    };
+    const indexRoute = '#/featuredStalls/roomReserve/Index';
+    history.replaceState(null, '', indexRoute);
+    const article = (id, available) =>
+      '<article class="room-card"><div class="title">下沙校区' + id + '</div>' +
+      '<div class="btn-apply">' + (available ? '预订' : '已约满') + '</div>' +
+      '<div class="count">10</div><span class="slot-tag ' + (available ? 'bookable' : 'booked') +
+      '">16:00～18:30</span></article>';
+    function showList() {
+      lab.innerHTML = '<div class="room-reserve"><div class="date-bar">' +
+        '<button class="uni-date-editor">日历</button></div><div class="yq-uni-p-r-list">' +
+        '<div class="no-data">当前日期无可预约厨房</div></div></div>';
+      lab.querySelector('.uni-date-editor').onclick = calendar;
+    }
+    const calendar = () => {
+      const pop = document.createElement('section');
+      pop.className = 'uni-calendar__content';
+      pop.innerHTML = '<span class="uni-calendar__header-text">2026年11月</span>' +
+        '<button><span class="uni-calendar--right">次月</span></button>';
+      lab.append(pop);
+      pop.querySelector('button').onclick = () => {
+        pop.querySelector('.uni-calendar__header-text').textContent = '2026年12月';
+        const previousDays = 2;
+        for (let index = 0; index < 7; index++) {
+          const day = document.createElement('button');
+          day.className = 'uni-calendar-item__weeks-box';
+          day.innerHTML = '<span class="uni-calendar-item__weeks-box-text">' +
+            (index < previousDays ? 29 + index : index - previousDays + 1) + '</span>';
+          day.onclick = () => {
+            assert(index === previousDays, '日历选错了日期');
+            pop.remove();
+            const list = lab.querySelector('.yq-uni-p-r-list');
+            setTimeout(() => {
+              list.innerHTML = article('XS-03', false) + article('XS-02', true) + article('XS-01', true);
+              lab.querySelectorAll('.room-card').forEach(card => card.onclick = () =>
+                openForm(card.querySelector('.title').textContent.slice(-5)));
+            }, 140);
+          };
+          pop.append(day);
+        }
+      };
+    };
+    showList();
+    window.onhashchange = event => {
+      if (!submitted && event.oldURL.includes('/ReserveForm') && location.hash === indexRoute) showList();
+    };
+
+    function openForm(room) {
+      chosen = room;
+      selected = false;
+      agreementReady = false;
+      location.hash = '/featuredStalls/roomReserve/ReserveForm?appDate=2026-12-01';
+      lab.innerHTML = '<div class="reserve-form"><h2 class="title-text">下沙校区' + room + '</h2>' +
+        '<section class="field-card"><div class="field-card-label">预约日期</div>' +
+        '<div class="field-card-value">12-01 周二</div></section>' +
+        '<section class="field-card"><div class="field-card-label">联系人</div>' +
+        '<div class="field-card-value">示例联系人，13800000000</div></section>' +
+        '<section class="field-card"><div class="field-card-label">预约时段</div>' +
+        '<div class="field-card-value">请选择您希望预约的时段</div></section>' +
+        '<section class="field-item"><h3 class="field-item-title">用餐人数</h3>' +
+        '<button class="option-item actived">1人</button><button class="option-item">9人</button></section>' +
+        '<section class="agreement-bar"><i class="agreement-check"></i>' +
+        '<span class="agreement-name">《“理享厨房”安全文明使用须知》</span></section>' +
+        '<button class="btn-confirm">确认预约</button></div>';
+      const slots = lab.querySelectorAll('.field-card')[2];
+      slots.onclick = () => {
+        const view = document.createElement('section');
+        view.className = 'time-slot-popup-main';
+        const disabled = mode === 'empty' || (mode === 'taken' && room === 'XS-02');
+        view.innerHTML = '<button class="slot-item ' + (disabled ? 'disabled-row' : '') +
+          '"><i class="checkbox ' + (disabled ? 'disabled' : '') +
+          '"></i><span class="slot-time">16:00 ~ 18:30</span></button>' +
+          '<div class="footer"><button class="btn">确认选择</button></div>';
+        lab.append(view);
+        view.querySelector('.slot-item').onclick = () => {
+          assert(!disabled, '点击了已被预约的时段');
+          selected = true;
+          view.querySelector('.checkbox').classList.add('checked');
+        };
+        view.querySelector('.footer button').onclick = () => {
+          if (selected) slots.querySelector('.field-card-value').textContent = '16:00 ~ 18:30';
+          view.remove();
+        };
+      };
+      lab.querySelectorAll('.option-item')[1].onclick = () => {
+        lab.querySelector('.option-item.actived').classList.remove('actived');
+        lab.querySelectorAll('.option-item')[1].classList.add('actived');
+      };
+      lab.querySelector('.agreement-bar').onclick = () => {
+        const dialog = document.createElement('section');
+        dialog.innerHTML = '<div class="agreement-title">“理享厨房”安全文明使用须知</div>' +
+          '<div class="agreement-scroll"><div class="agreement-img"></div></div>' +
+          '<div class="agreement-footer"><button class="agreement-btn disabled">须滑动查看到内容底部</button></div>';
+        lab.append(dialog);
+        const scroll = dialog.querySelector('.agreement-scroll');
+        const button = dialog.querySelector('.agreement-btn');
+        setTimeout(() => {
+          agreementReady = scroll.scrollTop > 0;
+          if (!agreementReady) return;
+          button.classList.remove('disabled');
+          button.textContent = '确定已知悉';
+        }, 600);
+        button.onclick = () => {
+          assert(agreementReady, '提前点击了协议');
+          lab.querySelector('.agreement-check').classList.add('checked');
+          dialog.remove();
+        };
+      };
+      lab.querySelector('.btn-confirm').onclick = () => {
+        assert(selected, '未选时段就提交');
+        assert(agreementReady, '未等协议就提交');
+        assert(lab.querySelector('.option-item.actived').textContent === '9人', '人数未保存');
+        submitted++;
+        location.hash = '/featuredStalls/roomReserve/Index';
+        lab.innerHTML = '<div role="alert">预约成功</div>';
+      };
+    }
+    return { plan, info: () => ({ chosen, submitted }) };
+  }
+
+  try {
+
+    for (const [mode, commit, state, count, room] of [
+      ['ok', true, 'success', 1, 'XS-02'],
+      ['taken', true, 'success', 1, 'XS-01'],
+      ['empty', true, 'unavailable', 0, 'XS-01'],
+      ['locked', false, 'cancelled', 0, 'XS-02'],
+      ['edited', true, 'failed', 0, 'XS-02']
+    ]) {
+      const { plan, info } = install(mode);
+      const result = await KitchenBooking.runBooking(plan,
+        async kind => {
+          if (kind === 'commit' && mode === 'edited') {
+            lab.querySelector('.option-item.actived').classList.remove('actived');
+            lab.querySelector('.option-item').classList.add('actived');
+          }
+          return { ok: kind !== 'commit' || commit };
+        },
+        new AbortController().signal);
+      assert(result.state === state, mode + '返回 ' + JSON.stringify(result));
+      assert(info().chosen === room, '厨房优先级错误');
+      assert(info().submitted === count, '提交次数错误');
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    results.textContent = 'PASS: priority, fallback, empty list refresh, calendar, slot, agreement, single-submit, recheck, receipt';
+  } catch (error) {
+    results.textContent = 'FAIL: ' + error.stack;
+  }
+})();
+</script>
