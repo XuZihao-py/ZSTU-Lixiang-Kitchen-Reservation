@@ -4,6 +4,7 @@ const result = byId('environment-result');
 const retry = byId('recheck');
 const openTab = byId('show-tab');
 const portalCheck = byId('portal-check');
+const returnHome = byId('return-home');
 const milestones = [...document.querySelectorAll('#environment-progress li')];
 const params = new URLSearchParams(location.search);
 const shouldOpen = params.get('open') === '1';
@@ -64,6 +65,8 @@ function show(level, code, tabId, data = {}) {
 
 async function check() {
   const previous = result.dataset.level === 'error' ? relatedTab : undefined;
+  returnHome.hidden = true;
+  retry.className = 'primary';
   retry.disabled = true;
   portalCheck.disabled = true;
   reachedPortal = portalOnly;
@@ -71,24 +74,30 @@ async function check() {
   const id = crypto.randomUUID();
   const notify = (kind, code, level) => chrome.runtime.sendMessage({ kind, id, code, level }).catch(console.warn);
   show('checking', portalOnly ? 'portal-unreachable' : 'booking-direct', previous);
-  let code = 'failed';
+  let report;
   try {
     await notify('environment-start');
-    const response = await checkEnvironment({ open: shouldOpen, portalOnly, previous, owned,
+    report = await checkEnvironment({ open: shouldOpen, portalOnly, previous, owned,
       publish(level, stage, tabId) {
         show(level, stage, tabId);
         void notify('environment-update', stage, level === 'error' ? 'waiting' : 'checking');
       }
     });
-    code = response.code;
-    retry.disabled = false;
-    show(code === 'ready' ? 'ready' : 'error', code, response.tabId, response);
   } catch {
-    retry.disabled = false;
-    show('error', 'failed');
-  } finally {
-    await notify('environment-finish', code);
-    portalCheck.disabled = false;
+    report = { code: 'failed' };
+  }
+  const { code, tabId } = report;
+  const saved = await notify('environment-finish', code);
+  retry.disabled = false;
+  portalCheck.disabled = false;
+  show(code === 'ready' ? 'ready' : 'error', code, tabId, report);
+  if (code === 'ready') {
+    if (saved?.ok) {
+      returnHome.hidden = false;
+      retry.className = 'secondary';
+    } else {
+      byId('environment-message').append(' 结果暂未同步到预约助手，请重新检测。');
+    }
   }
 }
 

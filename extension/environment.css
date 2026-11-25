@@ -53,3 +53,4 @@
 #environment-stage { font-size: 12px; font-weight: 600; }
 #environment-message { color: var(--muted); }
 .environment-page footer { justify-content: flex-end; margin-top: 0; }
+#return-home { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
