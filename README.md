@@ -4,7 +4,7 @@
 
 ### ZSTU Lixiang Kitchen Reservation
 
-[![Version](https://img.shields.io/badge/Version-1.3.4_Beta_2-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2)
+[![Version](https://img.shields.io/badge/Version-1.3.7_Beta-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta)
 ![Chrome](https://img.shields.io/badge/Chrome-120%2B-4285F4?logo=googlechrome&logoColor=white)
 ![Manifest](https://img.shields.io/badge/Manifest-V3-brightgreen)
 [![License](https://img.shields.io/badge/License-PolyForm_NC-blue)](./LICENSE)
@@ -61,23 +61,23 @@ A better reservation experience for campus life.
 
 ### 当前发布版本 · Current Release
 
-[![Download](https://img.shields.io/badge/Download-v1.3.4_Beta_2-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2)
+[![Download](https://img.shields.io/badge/Download-v1.3.7_Beta-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta)
 
 | 版本信息 | 内容 |
 | --- | --- |
-| 当前发布版本 | v1.3.4 Beta 2 |
-| 扩展内部版本 | 1.3.4 |
+| 当前发布版本 | v1.3.7 Beta |
+| 扩展内部版本 | 1.3.7 |
 | 发布类型 | Public Beta |
 | 发布日期 | 2026-11-25 |
 
-[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2) ·
+[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta) ·
 [查看全部版本](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases) ·
 [完整更新日志](./CHANGELOG.md)
 
 > [!NOTE]
-> v1.3.4 Beta 2 主要更新项目文档、隐私权政策、服务条款及开发维护规范。
+> v1.3.7 Beta 新增主页环境状态和预约前自动检测，支持检测通过后返回预约助手，并改进校园会话恢复。
 >
-> 扩展核心功能与 v1.3.4 Beta 保持一致，已安装 v1.3.4 Beta 的用户无需重新安装扩展。
+> 从旧版升级时，请更新原安装目录并在 Chrome 中重新加载扩展。
 
 ### 系统要求 · Requirements
 
@@ -103,7 +103,7 @@ A better reservation experience for campus life.
 也可以通过 GitHub 仓库中的 **Code → Download ZIP** 获取 main 分支的当前源代码。
 
 > [!NOTE]
-> Releases 中提供的是对应发布版本的源代码快照，main 分支可能包含尚未正式发布的更新。
+> Releases 中提供的是对应发布版本的源代码快照，main 分支的代码可能与当前发布版本不同。
 >
 > 建议普通用户优先下载 Releases 中的已发布版本。
 
@@ -309,6 +309,7 @@ GitHub Release 中的 Beta、Beta 2 等后缀用于区分不同的公开测试�
 
 | 版本 | 发布类型 | 更新内容 |
 | --- | --- | --- |
+| [v1.3.7-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta) | Beta | 主页环境状态、自动检测、检测后返回和校园会话恢复改进 |
 | [v1.3.4-beta.2](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2) | Beta | 完善项目文档、隐私权政策、服务条款及开发维护规范 |
 | [v1.3.4-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta) | Beta | 新增预约环境检测、校园登录会话恢复、移动设备模式及预约日志 |
 | [v1.2.3-beta.2](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2) | Beta | 优化项目文档、安装指南及发布内容 |
