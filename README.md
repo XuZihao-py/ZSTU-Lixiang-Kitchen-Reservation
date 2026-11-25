@@ -4,7 +4,7 @@
 
 ### ZSTU Lixiang Kitchen Reservation
 
-[![Version](https://img.shields.io/badge/Version-1.2.3_Beta_2-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2)
+[![Version](https://img.shields.io/badge/Version-1.3.4_Beta-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta)
 ![Chrome](https://img.shields.io/badge/Chrome-120%2B-4285F4?logo=googlechrome&logoColor=white)
 ![Manifest](https://img.shields.io/badge/Manifest-V3-brightgreen)
 [![License](https://img.shields.io/badge/License-PolyForm_NC-blue)](./LICENSE)
@@ -15,6 +15,7 @@
 A better reservation experience for campus life.
 
 [版本下载](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases) ·
+[更新日志](./CHANGELOG.md) ·
 [问题反馈](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/issues) ·
 [社区讨论](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/discussions) ·
 [隐私权政策](./PRIVACY.md) ·
@@ -25,37 +26,46 @@ A better reservation experience for campus life.
 > [!WARNING]
 > 当前项目处于 Beta 公开测试阶段，部分功能仍在测试与优化中，可能存在未知问题或兼容性缺陷。
 >
-> 本项目为独立开发的非官方浏览器扩展，仅供学习与技术研究使用。请遵守学校及官方预约平台的相关管理规定。
+> 本项目为独立开发的非官方浏览器扩展，仅供学习与技术研究使用。请遵守学校及官方预约平台的相关管理规定，合理使用校园公共资源。
 
 ## 关于项目 · About
 
 理享厨房预约助手是一款面向浙江理工大学「理享食光 → 共享厨房」预约场景的 Chrome 浏览器扩展，旨在简化预约操作、减少重复操作并改善用户体验。
 
-扩展支持设置预约日期、时段、人数和厨房优先顺序，复用用户在 Chrome 中已有的校园登录会话，任务配置保存在本机。
+扩展支持预约计划管理、厨房优先顺序设置、预约环境检测、校园登录会话恢复、任务执行记录及预约结果反馈等功能。
+
+本项目复用用户在 Chrome 中已有的校园登录会话，预约配置及预约日志保存在用户设备本地。
 
 本项目由开发者独立设计与维护，与浙江理工大学及其相关管理机构不存在官方隶属或授权关系。
 
 ## 主要功能 · Features
 
-- **预约配置**：支持自定义预约日期、时段及人数。
-- **厨房选择**：支持厨房选择及优先顺序设置。
-- **时间管理**：基于北京时间管理预约任务。
-- **本地存储**：在本机保存预约配置及任务状态。
-- **信息校验**：核对预约页面及表单信息。
-- **结果反馈**：展示预约任务状态及执行结果。
-- **预约日志**：从弹窗底部打开，按北京时间查看最近 12 个任务的执行步骤，可复制或下载 TXT。
-- **会话复用**：复用 Chrome 中已有的校园登录会话。
-- **环境检测**：从任意页面打开扩展即可检测。预约登录失效时，扩展会通过数智浙理重新进入共享厨房，并读取次日厨房和时段数据。
-- **电源管理**：在预约任务执行期间请求系统保持唤醒。
+| 功能 | 说明 |
+| --- | --- |
+| 预约配置 | 支持自定义预约日期、时段及人数 |
+| 厨房选择 | 支持厨房选择及优先顺序设置 |
+| 时间管理 | 基于北京时间管理预约任务 |
+| 本地存储 | 在本机保存预约配置及任务状态 |
+| 环境检测 | 检查校园预约页面及实际预约数据的可用性 |
+| 会话恢复 | 通过数智浙理门户尝试恢复失效的预约登录会话 |
+| 认证引导 | 在学校要求重新认证时提供页面跳转及操作提示 |
+| 移动端兼容 | 在环境检测期间支持校园门户手机模式 |
+| 诊断进度 | 分阶段展示环境检测过程及异常位置 |
+| 信息校验 | 核对预约日期、厨房、时段、人数及表单状态 |
+| 预约日志 | 查看最近 12 个预约任务的执行记录 |
+| 日志导出 | 支持复制预约日志及下载 TXT 文件 |
+| 结果反馈 | 展示预约任务状态、执行结果及异常提示 |
+| 电源管理 | 在预约任务执行期间请求系统保持唤醒 |
 
 ## 下载与安装 · Download & Installation
 
 ### 当前发布版本 · Current Release
 
-[![Download](https://img.shields.io/badge/Download-v1.2.3_Beta_2-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2)
+[![Download](https://img.shields.io/badge/Download-v1.3.4_Beta-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta)
 
-[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2) ·
-[查看全部版本](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases)
+[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta) ·
+[查看全部版本](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases) ·
+[完整更新日志](./CHANGELOG.md)
 
 ### 系统要求 · Requirements
 
@@ -63,9 +73,10 @@ A better reservation experience for campus life.
 | --- | --- |
 | 浏览器 | Google Chrome 120 或更高版本 |
 | 扩展规范 | Manifest V3 |
-| 用户账号 | 有效的校园账号及登录会话 |
-| 网络环境 | 正常的网络连接 |
+| 用户账号 | 合法有效的校园账号 |
+| 网络环境 | 能够正常访问学校相关服务 |
 | 设备状态 | 预约任务执行期间保持电脑开机及 Chrome 运行 |
+| 浏览器权限 | 允许扩展使用实现相关功能所需的权限 |
 
 ### 安装步骤 · Installation
 
@@ -77,81 +88,179 @@ A better reservation experience for campus life.
 6. 选择解压目录中的 **extension** 文件夹。
 7. 在 Chrome 的扩展程序菜单中固定「理享厨房预约助手」。
 
-也可以通过 [GitHub 仓库](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation) 中的 **Code → Download ZIP** 获取 main 分支的当前源代码。
+也可以通过 GitHub 仓库中的 **Code → Download ZIP** 获取 main 分支的当前源代码。
 
 > [!NOTE]
 > Releases 中提供的是对应发布版本的源代码快照，main 分支可能包含尚未正式发布的更新。
+>
+> 建议普通用户优先下载 Releases 中的已发布版本。
 
 ## 使用指南 · User Guide
 
-### 1. 登录校园预约平台
+### 1. 检测预约环境
 
-从扩展弹窗点击「打开预约网页」，确认能够看到共享厨房列表。
+首次使用或长时间未使用扩展时，建议先点击弹窗底部的「环境检测」。
 
-点击弹窗底部的「环境检测」即可验证，无需提前打开预约页。检测到预约登录失效时，扩展会打开数智浙理首页，尝试通过「服务 → 理享食光 → 共享厨房」恢复会话。学校要求重新认证时，检测页会用红色标明异常位置。点「前往统一认证」完成学校要求的验证后，检测会自动继续。绿色表示已读到有效的厨房和时段数据。检测页会显示各步骤状态。选择「从门户检测」可直接验证手机模式的门户入口。读取门户跳转后的预约页时，扩展会暂时切到该页，检测完成后返回进度页。
+扩展将检查预约网页的访问状态、登录会话及实际预约数据。
 
-门户恢复会话时，扩展会在检测标签页自动启用手机模式。Chrome 调试权限用于设置该页的手机标识、屏幕尺寸和触控，检测结束后会退出手机模式。
+环境检测主要包括以下阶段：
 
-已有登录会话的用户可以访问：
+1. 检查预约直达页。
+2. 检查数智浙理门户及校园登录状态。
+3. 检查理享食光与共享厨房入口。
+4. 验证次日厨房及预约时段数据。
+
+如果已有预约登录会话有效，部分门户检测步骤可能自动跳过。
+
+检测过程中，页面将显示各阶段的完成状态及异常位置。
+
+当检测结果显示「预约环境正常」时，表示扩展已成功读取可核验的预约数据，但不代表目标日期或时段一定存在可用名额。
+
+### 2. 恢复校园登录会话
+
+如果预约登录会话失效，扩展会尝试通过数智浙理门户重新进入理享食光及共享厨房页面。
+
+当学校要求重新进行身份认证时，请点击检测页中的「前往统一认证」，并在学校官方页面完成相应操作。
+
+如检测已结束，请在完成认证后返回检测页点击「重新检测」。
+
+账号密码、验证码及扫码认证均由用户在学校官方页面自行完成。
+
+扩展不会代替用户完成身份认证，也不会绕过学校设置的身份验证要求。
+
+### 3. 移动设备模式
+
+在通过校园门户恢复预约会话期间，扩展可能为检测相关的学校标签页临时启用手机模式。
+
+手机模式用于设置页面的移动设备标识、屏幕尺寸及触控交互，以适配校园移动端门户。
+
+Chrome 可能在该过程中显示浏览器调试提示。
+
+检测结束时，扩展会尝试结束相关调试会话并退出手机模式。
+
+如需单独检查校园门户入口，可在环境检测页面选择「从门户检测」。
+
+已有登录会话的用户也可以直接访问：
 
 [共享厨房直达页](https://zhst.zstu.edu.cn/statusweb/h5/universityFrontOfficeProgram/#/featuredStalls/roomReserve/Index?spaceType=2&categoryCode=fixed&organizationId=0&pageId=2084927814681309185)
 
-### 2. 配置预约任务
+### 4. 配置预约任务
 
-在左栏选择预约日期，等待中栏读取网页后点击时段，再在右栏选择人数并添加厨房，用 ↑ 和 ↓ 调整优先顺序。
+在左栏选择预约日期，等待中栏读取预约数据后选择时段。
 
-尚未放号时，日历下方会显示最早开放预约时间。
+在右栏设置预约人数并添加所需厨房，使用 ↑ 和 ↓ 调整厨房优先顺序。
 
-已满时段也可能出现在列表中，预约时以网页实际余位为准。
+尚未开放预约时，日历下方会显示预计最早开放预约时间。
 
-在同一次 Chrome 会话内，关闭并重新打开弹窗会恢复预约草稿。
+已满时段也可能出现在列表中，实际可预约情况以官方页面为准。
 
-### 3. 确认预约授权
+在同一次 Chrome 会话内，关闭并重新打开弹窗可以恢复预约草稿。
 
-在站点阅读安全须知，在扩展弹窗勾选授权后点击「开始预约」。
+### 5. 确认预约授权
 
-查看顶部显示的北京时间及建议开机区间。
+请先阅读学校官方预约平台的安全须知及相关管理规定。
 
-### 4. 保持设备运行
+确认预约配置无误后，在扩展弹窗中勾选授权并点击「开始预约」。
 
-在提示区间内保持电脑开机、联网，并确保 Chrome 保持运行。
+请留意扩展显示的北京时间及建议开机区间。
 
-扩展会打开一个专用预约标签页，并在任务期间请求系统保持唤醒。请保留该标签页。
+### 6. 保持设备运行
 
-提前准备阶段如遇登录问题，请完成登录并刷新该标签页。
+在提示区间内保持电脑开机、网络连接正常，并确保 Chrome 保持运行。
 
-### 5. 查看预约结果
+扩展将打开专用预约标签页，并在任务执行期间请求系统保持唤醒。
 
-在扩展弹窗中查看任务执行结果。
+请勿随意关闭预约任务所使用的标签页。
 
-当结果显示「待核对」时，请先到站点的「我的预约」验证实际状态。
+提前准备阶段如遇登录问题，请在学校官方页面完成登录，并根据实际情况重新检测或刷新预约页面。
 
-若站点要求额外信息或进入付款页面，请在官方网站人工处理。
+### 7. 查看预约结果
+
+在扩展弹窗中查看任务执行状态。
+
+当结果显示「待核对」时，请先到学校官方平台的「我的预约」核对实际结果。
+
+如果学校要求补充信息、确认身份或完成付款，请通过官方页面人工处理。
 
 > [!IMPORTANT]
-> 扩展显示的任务状态仅供参考，实际预约结果以官方平台回执及「我的预约」中的记录为准。
+> 扩展显示的任务状态及环境检测结果仅供参考。
+>
+> 实际预约结果以官方平台回执及「我的预约」中的记录为准。
+
+### 8. 查看预约日志
+
+点击扩展弹窗底部的「预约日志」，即可进入独立日志页面。
+
+预约日志支持：
+
+- 查看最近 12 个预约任务；
+- 每个任务最多保留 60 条执行记录；
+- 查看预约日期、时段、人数及厨房优先顺序；
+- 查看任务执行时间及各阶段运行状态；
+- 查看异常原因及人工处理提示；
+- 复制预约日志；
+- 下载 TXT 格式日志文件。
+
+日志时间统一采用北京时间，并精确至毫秒。
+
+预约日志保存在用户设备本地，不包含校园账号、联系人字段内容或登录凭据。
+
+日志导出后，请妥善保管相关文件。
 
 ## 预约规则 · Reservation Rules
 
 ### 时间与提交
 
-平台公布的预约窗口为北京时间每日 **07:30–23:00**，可预约次日起 1–6 天的日期。
+根据当前项目所依据的预约规则，预约窗口为北京时间每日 **07:30–23:00**，可预约次日起 1–6 天的日期。
 
-扩展根据目标日期计算最早可约日，通常从 **07:25** 准备，**07:30** 开始，最多工作至 **07:33**。
+扩展根据目标日期计算最早可约日，通常从 **07:25** 开始准备，**07:30** 开始执行，最晚工作至 **07:33**。
 
-选择已放号日期且当前仍开放时，任务立即开始。下一天仍在可预约范围内时，夜间设置的任务会等到下一个开放窗口。
+选择已开放预约的日期且当前仍处于预约窗口时，任务可以立即开始。
 
-扩展按优先顺序选择页面显示可约且容量足够的厨房，重开日历核对已选日期，再交叉核对表单日期、地址栏日期、厨房、时段、人数和联系人。
+下一天仍在可预约范围内时，夜间设置的任务将等待下一个开放窗口。
 
-扩展等待页面规定的须知倒计时、滚动条件与按钮启用，再通过网站的「确认预约」提交一次。现场已观察到 10 秒阅读时间，扩展以页面实时状态为准。
+扩展根据用户设定的厨房优先顺序检查可预约情况，并核对日期、厨房、时段、人数及表单状态。
+
+扩展等待官方页面规定的安全须知阅读时间、滚动条件及按钮启用状态，不跳过网站要求的确认条件。
+
+通过校验后，扩展按照任务授权进行单次预约提交。
+
+如学校调整预约规则，以官方平台最新规定为准。
 
 ### 运行限制
 
-- 时钟误差、电脑休眠、校内登录会话、网络环境及服务器负载都会影响预约。
-- 使用前请运行系统时间同步。
-- 站点变更或页面出现未识别的强制条件时，弹窗会显示失败或需人工处理。
-- 预约结果不明确时，扩展会保留该状态供用户核对。
-- 本项目不保证预约成功，请以官方平台的实际预约结果为准。
+- 时钟误差、设备休眠、网络环境及服务器负载可能影响预约。
+- 校园登录会话可能在任务执行前失效。
+- 环境检测正常不代表未来预约一定成功。
+- 浏览器调试权限不可用或与开发者工具冲突时，移动设备模式可能无法正常启用。
+- 学校门户或预约页面发生变化时，部分功能可能失效。
+- 出现额外身份验证或付款要求时，需要用户人工处理。
+- 本项目不保证预约成功，不提供额外预约资格。
+
+## 浏览器权限 · Permissions
+
+为实现相应功能，本项目使用以下 Chrome 扩展权限：
+
+| 权限 | 用途 |
+| --- | --- |
+| Alarms | 安排预约任务的准备、启动及结束时间 |
+| Storage | 保存预约配置、任务状态及预约日志 |
+| Power | 在预约任务执行期间请求系统保持唤醒 |
+| WebNavigation | 识别环境检测相关校园页面的导航及跳转 |
+| Debugger | 为环境检测相关标签页启用移动设备模式及触控模拟 |
+| Host Permissions | 访问实现校园门户、统一认证及共享厨房功能所需的指定学校网站 |
+
+当前版本声明的学校网站访问范围包括：
+
+- `https://ie.zstu.edu.cn/*`
+- `https://sso.zstu.edu.cn/*`
+- `https://zhst.zstu.edu.cn/*`
+
+本项目未申请访问所有网站的权限。
+
+Debugger 权限用于当前版本的移动设备环境检测，不用于收集用户密码、浏览记录或其他无关个人信息。
+
+有关信息处理及浏览器权限的详细说明，请参阅 [隐私权政策](./PRIVACY.md)。
 
 ## 更新与测试 · Updates & Testing
 
@@ -159,20 +268,32 @@ A better reservation experience for campus life.
 
 建议通过 [GitHub Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases) 获取已发布版本。
 
-[仓库 main 分支](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/tree/main) 提供当前开发源代码。
+已安装旧版本的用户可以按照以下方式升级：
 
-ZIP 安装的用户可以使用新版 `extension` 目录替换旧目录，然后在 `chrome://extensions/` 中点击扩展的重新加载按钮。
+1. 确认当前没有正在执行的预约任务。
+2. 下载并解压新版本。
+3. 备份需要保留的旧版本文件及预约日志。
+4. 使用新版 `extension` 目录中的内容替换原有安装目录。
+5. 打开 `chrome://extensions/`。
+6. 点击扩展对应的重新加载按钮。
+7. 检查扩展权限及版本号，并重新进行环境检测。
 
-### 版本记录
+> [!NOTE]
+> v1.3.4 新增环境检测相关浏览器权限。升级后，请留意 Chrome 的权限提示。
+>
+> 为尽可能保留原有本地数据，建议在原安装目录进行更新，避免不必要的卸载及重新安装。
+
+### 版本记录 · Version History
 
 | 版本 | 发布类型 | 更新内容 |
 | --- | --- | --- |
+| [v1.3.4-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta) | Beta | 新增预约环境检测、校园登录会话恢复、移动设备模式及预约日志 |
 | [v1.2.3-beta.2](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2) | Beta | 优化项目文档、安装指南及发布内容 |
 | [v1.2.3-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta) | Beta | 首次公开测试版本 |
 
-完整版本记录请参阅 [Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases)。
+完整版本记录请参阅 [CHANGELOG.md](./CHANGELOG.md) 或 [GitHub Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases)。
 
-### 规则测试
+### 自动化测试 · Automated Tests
 
 在项目根目录运行：
 
@@ -184,9 +305,9 @@ node tests/environment-mobile.cjs
 node tests/environment-entry.cjs
 ```
 
-用于验证放号时间、时段、容量、优先级和单次提交门槛。
+相关测试用于验证预约规则、日志存储、环境识别、移动设备模式及校园门户入口等功能。
 
-### 页面测试
+### 页面测试 · Page Tests
 
 使用 Chrome 打开：
 
@@ -196,19 +317,21 @@ tests/site-fixture.html
 
 可以离线演练以下场景：
 
-- 跨月选择预约日期
-- 顶栏日期与日历不一致
-- 表单日期不一致
-- 周中及周末预约时段
-- 预约容量已满
-- 安全须知条件
-- 提交锁及预约回执
+- 跨月选择预约日期；
+- 顶栏日期与日历不一致；
+- 表单日期不一致；
+- 周中及周末预约时段；
+- 预约容量已满；
+- 安全须知条件；
+- 提交锁及预约回执。
 
 页面显示 `PASS` 表示对应测试通过。
 
+测试通过不代表真实校园预约平台中的所有场景均可正常运行。
+
 ## 问题反馈 · Feedback
 
-欢迎通过以下渠道提交问题、功能建议及使用体验，帮助改进本项目。
+欢迎通过以下渠道提交问题、功能建议及使用体验。
 
 | 渠道 | 用途 |
 | --- | --- |
@@ -216,19 +339,26 @@ tests/site-fixture.html
 | [GitHub Discussions](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/discussions) | 使用交流及社区讨论 |
 | [GitHub Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases) | 版本发布及更新公告 |
 
-提交问题时，建议提供插件版本、浏览器版本、问题描述及必要的界面截图。
+提交问题时，建议提供：
+
+- 扩展版本；
+- Chrome 浏览器版本；
+- 问题描述；
+- 环境检测结果；
+- 经过检查及脱敏的预约日志；
+- 必要的界面截图。
 
 > [!CAUTION]
-> 请勿在公开反馈中提交校园账号、密码、Cookie、身份验证令牌或其他敏感个人信息。
+> 请勿在公开反馈中提交校园账号、密码、验证码、Cookie、身份验证令牌、联系方式或其他敏感个人信息。
 
 ## 隐私权和条款 · Privacy & Terms
 
-我们重视用户隐私、软件使用规范及知识产权保护。有关本项目的详细政策，请参阅以下文件。
+我们重视用户隐私、软件使用规范及知识产权保护。
 
 | 文件 | 说明 |
 | --- | --- |
 | [服务条款（Terms of Service）](./TERMS.md) | 软件使用规范、用户责任及相关条款 |
-| [隐私权政策（Privacy Policy）](./PRIVACY.md) | 信息处理、存储及隐私保护说明 |
+| [隐私权政策（Privacy Policy）](./PRIVACY.md) | 信息处理、浏览器权限及隐私保护说明 |
 | [软件许可说明（Software Licensing）](./LICENSE.md) | 面向中文用户的软件许可说明 |
 | [软件许可证（License）](./LICENSE) | 正式软件授权文本 |
 | [版权声明（Notice）](./NOTICE) | 知识产权及第三方资源声明 |
