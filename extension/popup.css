@@ -234,9 +234,10 @@ select { width: 100%; }
 #trigger:empty { display: none; }
 #status { width: 100%; padding-top: 5px; border-top: 1px solid var(--line); font-size: 12px; }
 #error { margin-top: 7px; font-size: 12px; font-weight: 600; }
-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 9px; }
-.log-link { align-self: center; margin-right: auto; padding: 5px 4px; color: var(--brand); font-size: 13px; }
-.log-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 9px; }
+.footer-link { align-self: center; padding: 5px 4px; color: var(--brand); font-size: 13px; }
+.log-link { margin-right: auto; }
+.footer-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .secondary, .primary { font-weight: 600; white-space: nowrap; }
 .primary { min-width: 112px; color: #fff; background: var(--brand); border-color: var(--brand); }
 .primary:hover:not(:disabled) { background: #111; }

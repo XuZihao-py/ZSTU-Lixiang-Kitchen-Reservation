@@ -1,0 +1,18 @@
+.environment-page { width: min(650px, 100%); }
+.environment-page header { min-height: 60px; padding-block: 12px; }
+.environment-page main { display: grid; gap: 12px; }
+
+#environment-result, #portal-guide {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+#environment-result { background: var(--surface); }
+#environment-heading { font-size: 16px; }
+#environment-message, #portal-guide li { color: var(--muted); }
+#portal-guide ol { margin: 0; padding-left: 24px; }
+#portal-guide li + li { margin-top: 4px; }
+.environment-page footer { justify-content: flex-end; margin-top: 0; }
