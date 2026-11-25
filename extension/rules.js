@@ -60,6 +60,18 @@
     return [...new Set(eligible.flatMap(room => room.listed.map(normalizeSlot).filter(Boolean)))].sort();
   }
 
+  function firstReleaseAt(bookingDay) {
+    return bookingDay - 6 * DAY + OPEN;
+  }
+
+  function releaseHint(date, now = Date.now()) {
+    if (!validDate(date)) return '';
+    const releaseAt = firstReleaseAt(dayStart(date));
+    if (releaseAt <= now) return '';
+    const beijingDate = new Date(releaseAt + BEIJING).toISOString();
+    return '最早开抢 ' + beijingDate.slice(0, 10) + ' ' + beijingDate.slice(11, 16) + '（北京时间）。';
+  }
+
   function buildPlan(input, now = Date.now()) {
     const date = input.date;
     if (!validDate(date)) throw new Error('请选择有效的预约日期。');
@@ -78,16 +90,16 @@
     }
     if (input.authorized !== true) throw new Error('请先阅读须知并授权本次任务。');
 
-    const releaseDay = bookingDay - 6 * DAY;
+    const releaseAt = firstReleaseAt(bookingDay);
     const lastDay = bookingDay - DAY;
     const today = dayStart(localDay(now));
     const nextWindow = now >= today + CLOSE ? today + DAY : today;
-    const executionDay = Math.max(releaseDay, nextWindow);
+    const executionDay = Math.max(releaseAt - OPEN, nextWindow);
     if (executionDay > lastDay) throw new Error('该日期已没有可用的预约开放窗口。');
     const startAt = Math.max(executionDay + OPEN, now);
     return {
       date, start: input.start, end: input.end, people, kitchens,
-      releaseAt: releaseDay + OPEN,
+      releaseAt,
       startAt,
       prepareAt: Math.max(startAt - PREPARE, now),
       deadline: Math.min(startAt + DURATION, executionDay + CLOSE)
@@ -117,7 +129,7 @@
   }
 
   const api = { BOOKING_URL, KITCHENS, ACTIVE, buildPlan, localDay, formatTime, normalizeSlot,
-    candidateKitchens, listedSlots, matchesFormDate, validDate, canClaim, canCommit };
+    candidateKitchens, listedSlots, matchesFormDate, validDate, canClaim, canCommit, releaseHint };
   globalThis.KitchenPlan = api;
   if (typeof module !== 'undefined') module.exports = api;
 })();

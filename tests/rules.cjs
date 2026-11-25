@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const {
-  buildPlan, candidateKitchens, listedSlots, matchesFormDate, normalizeSlot, localDay, canClaim, canCommit
+  buildPlan, candidateKitchens, listedSlots, matchesFormDate, normalizeSlot, localDay, canClaim, canCommit, releaseHint
 } = require('../extension/rules.js');
 
 const sample = {
@@ -64,4 +64,10 @@ assert(matchesFormDate('2026-11-30', '2026-11-30', '11-30 周一'));
 assert(!matchesFormDate('2026-11-30', '2026-11-30', '11-28 周六'));
 assert(!matchesFormDate('2026-11-30', '2026-11-28', '11-30 周一'));
 assert(!matchesFormDate('2026-11-30', '2026-11-30', '2027-11-30'));
+assert.equal(releaseHint('2026-12-02', Date.parse('2026-11-25T23:59:59+08:00')),
+  '最早开抢 2026-11-26 07:30（北京时间）。');
+assert.equal(releaseHint('2027-01-03', Date.parse('2026-12-28T07:29:59+08:00')),
+  '最早开抢 2026-12-28 07:30（北京时间）。');
+assert.equal(releaseHint('2027-01-03', Date.parse('2026-12-28T07:30:00+08:00')), '');
+assert.equal(releaseHint('2026-02-31'), '');
 console.log('规则测试通过。');

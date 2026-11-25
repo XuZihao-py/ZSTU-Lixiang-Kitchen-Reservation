@@ -1,4 +1,4 @@
-const { KITCHENS, ACTIVE, buildPlan, localDay, formatTime, validDate, listedSlots } = KitchenPlan;
+const { KITCHENS, ACTIVE, buildPlan, localDay, formatTime, validDate, listedSlots, releaseHint } = KitchenPlan;
 const byId = id => document.getElementById(id);
 const form = byId('plan-form');
 const people = byId('people');
@@ -109,10 +109,11 @@ function renderSlots() {
   slot.value = options.includes(selected) ? selected : '';
   slot.disabled = active || !options.length;
   byId('refresh-slots').disabled = active || reading || !validDate(dateInput.value) || dateInput.value < tomorrow();
-  byId('slot-info').textContent = reading ? '正在核对日期和网页时段…' : slotError ||
+  const status = reading ? '正在核对日期和网页时段…' : slotError ||
     (active ? '已保存 ' + plan.date + ' 的预约时段。' : lookup?.date === dateInput.value ?
       (options.length ? '已核对网页日期 ' + lookup.date + '。余位以预约时为准。' :
         '网页在 ' + lookup.date + ' 未列出符合人数及所选厨房的时段。') : '选定日期后，从预约网页读取。');
+  byId('slot-info').textContent = [releaseHint(dateInput.value), status].filter(Boolean).join(' ');
 }
 
 async function refreshSlots() {

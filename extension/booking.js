@@ -11,7 +11,6 @@
   const find = (selector, predicate, root = document) =>
     all(selector, root).find(element => visible(element) && predicate(element));
   const cards = () => all('.room-reserve .room-card').filter(visible);
-  const pause = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
   const field = name => find('.reserve-form .field-card', card => text(query('.field-card-label', card)) === name);
   const kitchenId = value => value.match(/(?:XS|LP)-\d{2}$/i)?.[0].toUpperCase();
   const outcome = (state, message) => ({ state, message });
@@ -23,14 +22,49 @@
     }
 
     async function waitFor(check, error, timeout = 10_000) {
-      const until = Date.now() + timeout;
-      do {
-        guard();
-        const value = check();
-        if (value) return value;
-        await pause(120);
-      } while (Date.now() < until);
-      throw new Error(error);
+      guard();
+      const initial = check();
+      if (initial) return initial;
+      const until = Math.min(deadline, Date.now() + timeout);
+      return new Promise((resolve, reject) => {
+        let timer;
+        let settled = false;
+        const observer = new MutationObserver(inspect);
+
+        function finish() {
+          settled = true;
+          clearTimeout(timer);
+          observer.disconnect();
+          signal.removeEventListener('abort', inspect);
+        }
+
+        function inspect() {
+          if (settled) return;
+          clearTimeout(timer);
+          try {
+            guard();
+            const remaining = until - Date.now();
+            if (remaining <= 0) throw new Error(error);
+            const value = check();
+            if (value) {
+              finish();
+              resolve(value);
+            } else {
+              timer = setTimeout(inspect, Math.min(120, remaining));
+            }
+          } catch (failure) {
+            finish();
+            reject(failure);
+          }
+        }
+
+        observer.observe(document.documentElement, {
+          subtree: true, childList: true, characterData: true, attributes: true,
+          attributeFilter: ['class', 'style', 'hidden', 'disabled', 'aria-disabled']
+        });
+        signal.addEventListener('abort', inspect, { once: true });
+        inspect();
+      });
     }
 
     function click(element) {
@@ -97,15 +131,13 @@
       throw new Error('目标日期暂不可选，请检查页面放号状态。');
     }
     click(selected);
-    await pause(150);
-    const confirm = find('.uni-datetime-picker--btn', button => /^(确认|确定)$/.test(text(button)));
-    if (confirm) click(confirm);
-    await waitFor(() => {
-      const current = cards();
-      const currentEmpty = find('.yq-uni-p-r-list .no-data', () => true);
-      return current.some(card => !previous.includes(card)) ||
-        (currentEmpty && currentEmpty !== previousEmpty);
-    }, '未等到目标日期的厨房列表。', 18_000);
+    await Promise.resolve();
+    const next = await waitFor(() => {
+      if (calendarMonth() === null) return { closed: true };
+      const confirm = find('.uni-datetime-picker--btn', button => /^(确认|确定)$/.test(text(button)));
+      return confirm ? { confirm } : null;
+    }, '站点未接受日历选择。');
+    if (next.confirm) click(next.confirm);
 
     await waitFor(() => calendarMonth() === null, '选日后日历未关闭。');
     click(editor);
@@ -115,6 +147,12 @@
       throw new Error('网页日历实际选中日期与目标 ' + date + ' 不一致。');
     }
     await closeCalendar();
+    await waitFor(() => {
+      const current = cards();
+      const currentEmpty = find('.yq-uni-p-r-list .no-data', () => true);
+      return current.some(card => !previous.includes(card)) ||
+        (currentEmpty && currentEmpty !== previousEmpty);
+    }, '未等到目标日期的厨房列表。', 18_000);
   }
 
   function availableRooms() {
@@ -177,7 +215,8 @@
       if (query('.agreement-check.checked', bar)) return true;
       click(bar);
       const button = await waitFor(() => find('.agreement-footer .agreement-btn', () => true), '安全须知未打开。');
-      await tell('progress', { message: '正在等待安全须知阅读条件完成。' });
+      // 状态反馈与页面须知倒计时并行。
+      void tell('progress', { message: '正在等待安全须知阅读条件完成。' }).catch(() => {});
       let ready;
       try {
         ready = await waitFor(() => {
