@@ -6,6 +6,7 @@
   <title>理享厨房预约助手</title>
   <link rel="stylesheet" href="popup.css">
   <script src="rules.js" defer></script>
+  <script src="environment-status.js" defer></script>
   <script src="popup.js" defer></script>
 </head>
 <body>
@@ -15,6 +16,13 @@
   </header>
 
   <main>
+    <section class="environment-summary" id="environment-summary" data-level="unknown" aria-labelledby="home-environment-title">
+      <div role="status">
+        <h2 id="home-environment-title">待环境检测</h2>
+        <p class="hint" id="home-environment-detail"></p>
+      </div>
+      <a class="footer-link" href="environment.html" target="_blank" rel="noopener">环境检测</a>
+    </section>
     <form id="plan-form">
       <fieldset id="settings" disabled>
         <legend class="sr-only">预约设置</legend>
@@ -81,7 +89,6 @@
       <p id="error" role="alert" hidden></p>
       <footer>
         <button id="visit" type="button" class="secondary" disabled>打开预约网页</button>
-        <a class="footer-link" href="environment.html" target="_blank" rel="noopener">环境检测</a>
         <a class="footer-link log-link" href="log.html" target="_blank" rel="noopener">预约日志</a>
         <button id="begin" type="submit" class="primary" disabled>开始预约</button>
         <button id="cancel" type="button" class="secondary" hidden>停止任务</button>

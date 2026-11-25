@@ -76,6 +76,27 @@ header {
 main { padding-top: 16px; padding-bottom: 16px; }
 fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
 
+.environment-summary {
+  --environment-tone: #626262;
+  --environment-fill: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--environment-fill);
+}
+.environment-summary[data-level="ready"] { --environment-tone: #175936; --environment-fill: #edf8f1; }
+.environment-summary[data-level="error"] { --environment-tone: #8d2924; --environment-fill: #fff2f0; }
+.environment-summary[data-level="checking"] { --environment-tone: #15457e; --environment-fill: #edf4fc; }
+.environment-summary[data-level="stale"] { --environment-tone: #75501b; --environment-fill: #fff6e7; }
+.environment-summary h2 { color: var(--environment-tone); font-size: 13px; }
+.environment-summary .hint { margin-top: 2px; }
+.environment-summary a { flex: none; }
+
 .steps {
   display: grid;
   grid-template-columns: minmax(230px, 1.13fr) minmax(142px, .72fr) minmax(240px, 1.15fr);

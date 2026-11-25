@@ -23,26 +23,7 @@ const phases = {
   'data-read': 3, 'data-empty': 3, ready: 3
 };
 
-const steps = {
-  'booking-direct': ['预约直达页', '正在打开预约页，检查当前会话。', '无法打开预约直达页。'],
-  'portal-unreachable': ['数智浙理门户', '正在用手机模式打开学校门户，尝试恢复预约会话。', '手机模式下门户未加载完成。请检查校园服务及网络。'],
-  'mobile-unavailable': ['手机模式', '', 'Chrome 未能启用手机模式。请检查扩展的调试权限，或关闭冲突的开发者工具后重试。'],
-  'portal-home': ['门户服务导航', '正在查找学校门户的服务入口。', '门户已打开，但找不到「服务」入口。'],
-  'portal-catalog': ['理享食光服务入口', '正在服务中心查找「理享食光」。', '服务中心未载入「理享食光」入口。'],
-  'portal-handoff': ['理享食光跳转', '已打开「理享食光」入口，正在等待跳转。', '已在手机模式下打开「理享食光」，但未进入预约系统。'],
-  'school-auth': ['学校统一身份认证', '', '学校要求重新认证。打开认证页完成密码、验证码或扫码后，检测会自动继续。'],
-  'booking-return': ['共享厨房入口', '正在从理享食光打开共享厨房。', '理享食光已打开，但共享厨房列表未就绪。'],
-  'booking-login': ['理享食光登录', '', '已从学校门户进入，预约系统仍要求登录。请查看打开的理享食光页面。'],
-  'data-read': ['预约数据验证', '正在读取明天的厨房和时段。', '预约页已打开，但无法核对明天的日期或读取时段。'],
-  'data-empty': ['预约数据验证', '', '预约页已打开，但明天没有可核验的厨房和时段。'],
-  ready: ['预约数据验证', '', ''],
-  offline: ['网络连接', '', 'Chrome 当前离线。恢复连接后再检测。'],
-  network: ['预约页网络请求', '', '预约页报告网络异常。请检查连接后再检测。'],
-  unreachable: ['预约直达页连接', '', '预约页未响应。请检查网络或校园服务。'],
-  unready: ['共享厨房列表', '', '预约页已响应，但未加载出共享厨房列表。'],
-  closed: ['检测标签页', '', '检测标签页已关闭。请重新检测。'],
-  failed: ['浏览器扩展', '', 'Chrome 无法完成页面检测。请重新加载扩展后再试。']
-};
+const { steps } = KitchenEnvironmentStatus;
 
 function updateProgress(level, code) {
   if (Object.hasOwn(phases, code)) phase = phases[code];
@@ -87,15 +68,26 @@ async function check() {
   portalCheck.disabled = true;
   reachedPortal = portalOnly;
   phase = portalOnly ? 1 : 0;
+  const id = crypto.randomUUID();
+  const notify = (kind, code, level) => chrome.runtime.sendMessage({ kind, id, code, level }).catch(console.warn);
   show('checking', portalOnly ? 'portal-unreachable' : 'booking-direct', previous);
+  let code = 'failed';
   try {
-    const response = await checkEnvironment({ open: shouldOpen, portalOnly, previous, publish: show, owned });
+    await notify('environment-start');
+    const response = await checkEnvironment({ open: shouldOpen, portalOnly, previous, owned,
+      publish(level, stage, tabId) {
+        show(level, stage, tabId);
+        void notify('environment-update', stage, level === 'error' ? 'waiting' : 'checking');
+      }
+    });
+    code = response.code;
     retry.disabled = false;
-    show(response.code === 'ready' ? 'ready' : 'error', response.code, response.tabId, response);
+    show(code === 'ready' ? 'ready' : 'error', code, response.tabId, response);
   } catch {
     retry.disabled = false;
     show('error', 'failed');
   } finally {
+    await notify('environment-finish', code);
     portalCheck.disabled = false;
   }
 }

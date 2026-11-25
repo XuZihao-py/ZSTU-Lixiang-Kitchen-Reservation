@@ -1,9 +1,12 @@
-importScripts('rules.js', 'booking-log.js', 'environment-check.js');
+importScripts('rules.js', 'booking-log.js', 'environment-check.js', 'environment-mobile.js',
+  'environment-flow.js', 'environment-status.js');
 
 const { BOOKING_URL, ACTIVE, buildPlan, canClaim, canCommit, validDate, localDay, listedSlots } = KitchenPlan;
 const PREPARE = 'kitchen-prepare';
 const EXPIRE = 'kitchen-expire';
 const START = 'kitchen-start';
+const ENVIRONMENT = 'kitchen-environment';
+const { steps, isFresh, isActive, preflightAt } = KitchenEnvironmentStatus;
 let pending = Promise.resolve();
 let lookingUp = false;
 let bookingHistory;
@@ -12,6 +15,74 @@ function enqueue(action) {
   const result = pending.then(action);
   pending = result.catch(error => console.error('预约后台', error));
   return result;
+}
+
+async function schedulePreflight(plan) {
+  const at = preflightAt(plan);
+  if (at == null) return;
+  const { environmentPreflight } = await chrome.storage.session.get('environmentPreflight');
+  if (environmentPreflight !== plan.id) {
+    await chrome.alarms.create(ENVIRONMENT, { when: Math.max(Date.now() + 1000, at) });
+  }
+}
+
+async function writeEnvironment(runId, code, level, finished, tabId) {
+  const { environmentRun } = await chrome.storage.session.get('environmentRun');
+  if (environmentRun?.id !== runId || environmentRun.tabId !== tabId) return { ok: false };
+  code = Object.hasOwn(steps, code) ? code : 'failed';
+  if (finished) {
+    await chrome.storage.local.set({ environmentResult: {
+      code, level: code === 'ready' ? 'ready' : 'error', checkedAt: Date.now()
+    } });
+    await chrome.storage.session.remove('environmentRun');
+  } else {
+    await chrome.storage.session.set({ environmentRun: {
+      ...environmentRun, code, level: level === 'waiting' ? 'waiting' : 'checking'
+    } });
+  }
+  return { ok: true };
+}
+
+async function manualEnvironment(request, tabId) {
+  if (typeof request.id !== 'string') return { ok: false };
+  if (request.kind === 'environment-start') {
+    await chrome.storage.session.set({ environmentRun: {
+      id: request.id, tabId, code: 'booking-direct', level: 'checking', startedAt: Date.now()
+    } });
+    return { ok: true };
+  }
+  return writeEnvironment(request.id, request.code, request.level, request.kind === 'environment-finish', tabId);
+}
+
+async function automaticEnvironment(preflight) {
+  const run = await enqueue(async () => {
+    const plan = await read();
+    const now = Date.now();
+    if (plan && ACTIVE.includes(plan.state) && preflightAt(plan, now) == null) return;
+    const { environmentRun, environmentPreflight } = await chrome.storage.session.get(['environmentRun', 'environmentPreflight']);
+    if (preflight) {
+      const at = preflightAt(plan, now);
+      if (at == null || environmentPreflight === plan?.id) return;
+      if (at > now) return schedulePreflight(plan);
+      await chrome.storage.session.set({ environmentPreflight: plan.id });
+    } else if (isFresh((await chrome.storage.local.get('environmentResult')).environmentResult, now)) {
+      return;
+    }
+    if (isActive(environmentRun, now)) return;
+    const next = { id: crypto.randomUUID(), code: 'booking-direct', level: 'checking', startedAt: now };
+    await chrome.storage.session.set({ environmentRun: next });
+    return next;
+  });
+  if (!run) return { ok: true };
+  let code = 'failed';
+  try {
+    const report = await KitchenEnvironmentFlow.checkAutomatically(step =>
+      void enqueue(() => writeEnvironment(run.id, step, 'checking', false)));
+    code = report.code;
+  } finally {
+    await enqueue(() => writeEnvironment(run.id, code, 'checking', true));
+  }
+  return { ok: true };
 }
 
 async function read() {
@@ -53,6 +124,7 @@ async function finish(plan, state, message, reason) {
   await chrome.alarms.clear(PREPARE);
   await chrome.alarms.clear(EXPIRE);
   await chrome.alarms.clear(START);
+  await chrome.alarms.clear(ENVIRONMENT);
   chrome.power.releaseKeepAwake();
 }
 
@@ -70,6 +142,7 @@ async function reconcile() {
   if (now < plan.startAt) await chrome.alarms.create(START, { when: plan.startAt });
   if (now < plan.prepareAt) {
     await chrome.alarms.create(PREPARE, { when: plan.prepareAt });
+    await schedulePreflight(plan);
     return;
   }
   chrome.power.requestKeepAwake('display');
@@ -204,12 +277,22 @@ async function handle(request, sender) {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, respond) => {
-  const operation = request.kind === 'lookup-slots' && fromPopup(sender) ?
-    lookupSlots(request.date) : enqueue(() => handle(request, sender));
+  let operation;
+  if (request.kind === 'lookup-slots' && fromPopup(sender)) {
+    operation = lookupSlots(request.date);
+  } else if (request.kind === 'environment-auto' && fromPopup(sender)) {
+    operation = automaticEnvironment(false);
+  } else if (['environment-start', 'environment-update', 'environment-finish'].includes(request.kind) &&
+      Number.isInteger(sender.tab?.id) && sender.url?.split(/[?#]/)[0] === chrome.runtime.getURL('environment.html')) {
+    operation = enqueue(() => manualEnvironment(request, sender.tab.id));
+  } else {
+    operation = enqueue(() => handle(request, sender));
+  }
   operation.then(respond, error => respond({ ok: false, error: error.message }));
   return true;
 });
 chrome.alarms.onAlarm.addListener(alarm => {
+  if (alarm.name === ENVIRONMENT) automaticEnvironment(true).catch(error => console.warn('环境检测失败', error));
   if ([PREPARE, START, EXPIRE].includes(alarm.name)) enqueue(reconcile);
 });
 chrome.runtime.onStartup.addListener(() => enqueue(async () => {
@@ -225,6 +308,10 @@ chrome.runtime.onStartup.addListener(() => enqueue(async () => {
 }));
 chrome.runtime.onInstalled.addListener(() => enqueue(reconcile));
 chrome.tabs.onRemoved.addListener(tabId => enqueue(async () => {
+  const { environmentRun } = await chrome.storage.session.get('environmentRun');
+  if (environmentRun?.tabId === tabId) {
+    await writeEnvironment(environmentRun.id, 'closed', 'error', true, tabId);
+  }
   const plan = await read();
   if (plan?.tabId !== tabId || !ACTIVE.includes(plan.state)) return;
   await finish(plan, plan.state === 'submitting' ? 'uncertain' : 'failed',

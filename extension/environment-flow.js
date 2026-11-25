@@ -199,5 +199,21 @@
     }
   }
 
-  globalThis.KitchenEnvironmentFlow = { checkEnvironment };
+  async function checkAutomatically(publish) {
+    if (navigator.onLine === false) return { code: 'offline' };
+    const tab = await chrome.tabs.create({ url: 'about:blank', active: false });
+    try {
+      await chrome.tabs.update(tab.id, { url: BOOKING_URL });
+      const code = await inspectBooking(tab.id, Date.now() + 14_000);
+      if (code === 'login') return { code: 'school-auth' };
+      if (code !== 'ready') return { code };
+      publish('data-read');
+      const report = await verifyData(tab.id);
+      return report.code === 'booking-login' ? { code: 'school-auth' } : report;
+    } finally {
+      await chrome.tabs.remove(tab.id).catch(() => {});
+    }
+  }
+
+  globalThis.KitchenEnvironmentFlow = { checkEnvironment, checkAutomatically };
 })();
