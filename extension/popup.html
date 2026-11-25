@@ -10,50 +10,53 @@
 </head>
 <body>
   <header>
-    <div>
-      <p class="campus">浙江理工大学</p>
-      <h1>理享厨房预约助手</h1>
-    </div>
+    <h1>理享厨房预约助手</h1>
     <span id="state" class="state">未设置</span>
   </header>
 
   <main>
-    <section class="schedule" aria-labelledby="window-heading">
-      <h2 id="window-heading">开机待命</h2>
-      <p id="window" class="window">请选择日期、时段和厨房</p>
-      <p id="trigger" class="trigger"></p>
-      <p class="hint">北京时间。请保持电脑开机、联网，且 Chrome 打开。</p>
-      <p id="status" role="status" hidden></p>
-    </section>
-
     <form id="plan-form">
-      <fieldset id="settings">
+      <fieldset id="settings" disabled>
         <legend class="sr-only">预约设置</legend>
-        <div class="form-grid">
-          <label>预约日期<input id="date" type="date" required></label>
-          <label>用餐人数
-            <select id="people" aria-label="用餐人数"></select>
-          </label>
+        <div class="steps">
+          <section class="step date-step" aria-labelledby="date-heading">
+            <h2 id="date-heading">预约日期</h2>
+            <div class="calendar-toolbar">
+              <strong id="month" aria-live="polite"></strong>
+              <div class="month-navigation">
+                <button id="previous-month" type="button" class="icon-button" aria-label="上个月">‹</button>
+                <button id="next-month" type="button" class="icon-button" aria-label="下个月">›</button>
+              </div>
+            </div>
+            <div class="calendar-week" aria-hidden="true">
+              <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+            </div>
+            <div id="calendar" class="calendar-days" role="group" aria-label="预约日期" aria-describedby="date-note"></div>
+            <p id="date-note" class="hint" role="status">请选择明天或之后的日期。</p>
+          </section>
+
+          <section class="step time-step" aria-labelledby="slot-heading">
+            <h2 id="slot-heading">预约时段</h2>
+            <p id="slot-info" class="hint" role="status">请先选择预约日期。</p>
+            <fieldset id="slot-options" aria-labelledby="slot-heading" disabled></fieldset>
+            <button id="refresh-slots" type="button" class="text-button" hidden>重新读取时段</button>
+          </section>
+
+          <section class="step kitchen-step" aria-labelledby="preferences-heading">
+            <h2 id="preferences-heading">厨房优先顺序</h2>
+            <p id="kitchen-info" class="hint" role="status">请先选择预约时段。</p>
+            <fieldset id="kitchen-options" aria-labelledby="preferences-heading" hidden disabled>
+              <label class="people-field">用餐人数
+                <select id="people"></select>
+              </label>
+              <div class="picker">
+                <select id="room" aria-label="选择厨房"></select>
+                <button id="add" type="button" class="secondary">加入</button>
+              </div>
+              <ol id="priority" aria-label="已选厨房优先顺序"></ol>
+            </fieldset>
+          </section>
         </div>
-
-        <section class="slot-field" aria-labelledby="slot-heading">
-          <h2 id="slot-heading">预约时段</h2>
-          <div class="picker">
-            <select id="slot" aria-label="预约时段" required disabled></select>
-            <button id="refresh-slots" type="button" class="secondary" disabled>读取时段</button>
-          </div>
-          <p id="slot-info" class="hint" role="status"></p>
-        </section>
-
-        <section class="preferences" aria-labelledby="preferences-heading">
-          <h2 id="preferences-heading">厨房优先顺序</h2>
-          <p class="hint">按列表从上到下寻找可约时段。</p>
-          <div class="picker">
-            <select id="room" aria-label="选择厨房"></select>
-            <button id="add" type="button" class="secondary">加入</button>
-          </div>
-          <ol id="priority" aria-label="已选厨房优先顺序"></ol>
-        </section>
 
         <label class="consent">
           <input id="authorized" type="checkbox">
@@ -65,11 +68,21 @@
         </label>
       </fieldset>
 
+      <section class="schedule" aria-labelledby="window-heading">
+        <div>
+          <h2 id="window-heading">开机待命</h2>
+          <p id="window" class="window">请选择日期、时段和厨房</p>
+          <p id="trigger" class="hint"></p>
+        </div>
+        <p class="hint">北京时间。请保持电脑开机、联网，且 Chrome 打开。</p>
+        <p id="status" role="status" hidden></p>
+      </section>
+
       <p id="error" role="alert" hidden></p>
       <footer>
-        <button id="visit" type="button" class="secondary">打开预约网页</button>
-        <button id="begin" type="submit" class="primary">开始预约</button>
-        <button id="cancel" type="button" class="secondary stop" hidden>停止任务</button>
+        <button id="visit" type="button" class="secondary" disabled>打开预约网页</button>
+        <button id="begin" type="submit" class="primary" disabled>开始预约</button>
+        <button id="cancel" type="button" class="secondary" hidden>停止任务</button>
       </footer>
     </form>
   </main>
