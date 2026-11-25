@@ -90,7 +90,7 @@ A better reservation experience for campus life.
 
 点击弹窗底部的「环境检测」即可验证，无需提前打开预约页。检测到预约登录失效时，扩展会打开数智浙理首页，尝试通过「服务 → 理享食光 → 共享厨房」恢复会话。学校要求重新认证时，检测页会用红色标明异常位置。点「前往统一认证」完成学校要求的验证后，检测会自动继续。绿色表示已读到有效的厨房和时段数据。
 
-如桌面门户入口不跳转，可在开发者工具的设备工具栏选择 Pixel，刷新门户后重新打开。
+门户恢复会话时，扩展会在检测标签页自动启用手机模式。Chrome 调试权限用于设置该页的手机标识、屏幕尺寸和触控，检测结束后会退出手机模式。
 
 已有登录会话的用户可以访问：
 
@@ -180,6 +180,7 @@ ZIP 安装的用户可以使用新版 `extension` 目录替换旧目录，然后
 node tests/rules.cjs
 node tests/booking-log.cjs
 node tests/environment.cjs
+node tests/environment-mobile.cjs
 ```
 
 用于验证放号时间、时段、容量、优先级和单次提交门槛。

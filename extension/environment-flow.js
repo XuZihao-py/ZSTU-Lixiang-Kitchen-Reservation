@@ -1,12 +1,13 @@
 (() => {
   const { BOOKING_URL, localDay } = KitchenPlan;
   const { PORTAL_URL, pageKind, inspectBooking, summarizeRooms } = KitchenEnvironment;
+  const { createMobileSession } = KitchenEnvironmentMobile;
   const sleep = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
   const getTab = id => chrome.tabs.get(id).catch(() => null);
   const signal = (id, kind) => chrome.tabs.sendMessage(id, { kind }, { frameId: 0 }).catch(() => null);
   const address = tab => tab.pendingUrl || tab.url || '';
 
-  async function recover(initial, owned, publish) {
+  async function recover(initial, owned, publish, mobile) {
     const hardDeadline = Date.now() + 165_000;
     let code = 'portal-unreachable';
     let deadline = Date.now() + 14_000;
@@ -38,6 +39,7 @@
       if (!tab) return { code: 'closed', tabId: currentId };
       const kind = pageKind(address(tab));
       const route = address(tab);
+      if (kind && !await mobile.enable(currentId)) return { code: 'mobile-unavailable' };
 
       if (kind === 'sso') {
         authAt ??= Date.now();
@@ -110,6 +112,7 @@
 
   async function checkEnvironment({ open, previous, publish, owned }) {
     let preserve;
+    const mobile = createMobileSession(chrome.debugger, navigator.userAgent);
     const track = ({ sourceTabId, tabId, url }) => {
       if (owned.has(sourceTabId) && pageKind(url)) owned.add(tabId);
     };
@@ -137,7 +140,9 @@
 
       let result;
       if (reuse) {
-        result = await verifyIfReady(await recover(tab.id, owned, publish));
+        if (!await mobile.enable(tab.id)) return { code: 'mobile-unavailable' };
+        if (previousKind === 'portal') await chrome.tabs.update(tab.id, { url: PORTAL_URL });
+        result = await verifyIfReady(await recover(tab.id, owned, publish, mobile));
       } else {
         publish('checking', 'booking-direct', tab.id);
         await chrome.tabs.update(tab.id, { url: BOOKING_URL });
@@ -145,12 +150,13 @@
         result = await verifyIfReady({ code, tabId: tab.id });
         if (['login', 'booking-login'].includes(result.code)) {
           publish('checking', 'portal-unreachable', tab.id);
+          if (!await mobile.enable(tab.id)) return { code: 'mobile-unavailable' };
           try {
             await chrome.tabs.update(tab.id, { url: PORTAL_URL });
           } catch {
             return { code: 'portal-unreachable' };
           }
-          result = await verifyIfReady(await recover(tab.id, owned, publish));
+          result = await verifyIfReady(await recover(tab.id, owned, publish, mobile));
         }
       }
 
@@ -165,6 +171,7 @@
       return { ...result, tabId: preserve };
     } finally {
       navigation.removeListener(track);
+      await mobile.close();
       for (const id of owned) {
         if (id !== preserve) await chrome.tabs.remove(id).catch(() => {});
       }
