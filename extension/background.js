@@ -96,22 +96,6 @@ async function reconcile() {
   }
 }
 
-async function checkEnvironment(request, tab) {
-  const probe = await chrome.tabs.create({ url: 'about:blank', active: false, windowId: tab.windowId });
-  let opened = false;
-  try {
-    await chrome.tabs.update(probe.id, { url: BOOKING_URL });
-    const state = await KitchenEnvironment.inspectBooking(probe.id, Date.now() + 14_000);
-    if (state === 'ready' && request.open === true && await chrome.tabs.get(tab.id).catch(() => null)) {
-      await chrome.tabs.update(probe.id, { active: true });
-      opened = true;
-    }
-    return { ok: true, state, opened };
-  } finally {
-    if (!opened) await chrome.tabs.remove(probe.id).catch(() => {});
-  }
-}
-
 async function lookupSlots(date) {
   if (!validDate(date) || date <= localDay(Date.now())) throw new Error('请选择明天或之后的日期。');
   if (lookingUp) throw new Error('已有时段查询，请稍后重试。');
@@ -123,7 +107,7 @@ async function lookupSlots(date) {
     await chrome.tabs.update(tabId, { url: BOOKING_URL });
     const deadline = Date.now() + 27_000;
     const state = await KitchenEnvironment.inspectBooking(tabId, deadline);
-    if (state === 'login') throw new Error('预约登录已失效，请点「环境检测」，从数智浙理进入后重试。');
+    if (state === 'login') throw new Error('预约登录已失效，请点「环境检测」恢复会话后重试。');
     if (state === 'offline' || state === 'network') throw new Error('无法连接预约页，请检查网络后重试。');
     if (state !== 'ready') throw new Error('预约页未加载出共享厨房列表，请点「环境检测」查看。');
     const result = await chrome.tabs.sendMessage(tabId, { kind: 'list-slots', date, deadline }, { frameId: 0 })
@@ -220,15 +204,8 @@ async function handle(request, sender) {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, respond) => {
-  let operation;
-  if (request.kind === 'check-environment' && sender.tab && sender.frameId === 0 &&
-      sender.url?.split('?')[0] === chrome.runtime.getURL('environment.html')) {
-    operation = checkEnvironment(request, sender.tab);
-  } else if (request.kind === 'lookup-slots' && fromPopup(sender)) {
-    operation = lookupSlots(request.date);
-  } else {
-    operation = enqueue(() => handle(request, sender));
-  }
+  const operation = request.kind === 'lookup-slots' && fromPopup(sender) ?
+    lookupSlots(request.date) : enqueue(() => handle(request, sender));
   operation.then(respond, error => respond({ ok: false, error: error.message }));
   return true;
 });

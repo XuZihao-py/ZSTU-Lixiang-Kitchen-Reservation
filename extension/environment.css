@@ -2,17 +2,26 @@
 .environment-page header { min-height: 60px; padding-block: 12px; }
 .environment-page main { display: grid; gap: 12px; }
 
-#environment-result, #portal-guide {
+#environment-result {
   display: grid;
   gap: 6px;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--line);
+  border-left-width: 4px;
   border-radius: 8px;
+  background: var(--surface);
 }
-
-#environment-result { background: var(--surface); }
-#environment-heading { font-size: 16px; }
-#environment-message, #portal-guide li { color: var(--muted); }
-#portal-guide ol { margin: 0; padding-left: 24px; }
-#portal-guide li + li { margin-top: 4px; }
+#environment-result[data-level="ready"] {
+  background: #edf8f1;
+  border-color: #52a174;
+  color: #175936;
+}
+#environment-result[data-level="error"] {
+  background: #fff2f0;
+  border-color: #cc615c;
+  color: #8d2924;
+}
+#environment-heading { font-size: 17px; }
+#environment-stage { font-size: 12px; font-weight: 600; }
+#environment-message { color: var(--muted); }
 .environment-page footer { justify-content: flex-end; margin-top: 0; }

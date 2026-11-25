@@ -6,7 +6,9 @@
   <title>预约环境检测 · 理享厨房预约助手</title>
   <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="environment.css">
+  <script src="rules.js" defer></script>
   <script src="environment-check.js" defer></script>
+  <script src="environment-flow.js" defer></script>
   <script src="environment.js" defer></script>
 </head>
 <body class="environment-page">
@@ -14,21 +16,13 @@
     <h1>预约环境检测</h1>
   </header>
   <main>
-    <section id="environment-result" aria-live="polite" aria-labelledby="environment-heading">
-      <h2 id="environment-heading">正在检测预约页</h2>
+    <section id="environment-result" data-level="checking" aria-live="polite" aria-labelledby="environment-heading">
+      <h2 id="environment-heading">正在检测预约环境</h2>
+      <p id="environment-stage"></p>
       <p id="environment-message">正在检查登录状态和共享厨房列表。</p>
     </section>
-    <section id="portal-guide" aria-labelledby="portal-heading" hidden>
-      <h2 id="portal-heading">从数智浙理进入共享厨房</h2>
-      <ol>
-        <li>打开数智浙理。若出现统一身份认证，请在学校页面登录。</li>
-        <li>依次打开「服务 → 后勤服务 → 理享食光 → 共享厨房」。</li>
-        <li>看到厨房列表后，回到本页重新检测。</li>
-      </ol>
-      <p id="portal-feedback" class="hint" role="status" hidden></p>
-    </section>
     <footer>
-      <button type="button" class="secondary" id="open-portal" hidden>前往数智浙理</button>
+      <button type="button" class="secondary" id="show-tab" hidden>查看相关页面</button>
       <button type="button" class="primary" id="recheck" disabled>重新检测</button>
     </footer>
   </main>
