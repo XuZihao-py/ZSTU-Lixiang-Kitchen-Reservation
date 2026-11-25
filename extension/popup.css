@@ -70,3 +70,7 @@ footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 13
 footer button { flex: 1; }
 .stop { color: #8b3a29; }
 .sr-only { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; white-space: nowrap; }
+
+.slot-field { margin-top: 12px; }
+.slot-field .picker { margin-top: 5px; }
+#slot-info:empty { display: none; }

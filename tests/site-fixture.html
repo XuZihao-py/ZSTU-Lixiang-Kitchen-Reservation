@@ -15,13 +15,14 @@
   const lab = document.querySelector('main');
   const results = document.querySelector('#results');
   const assert = (condition, message) => { if (!condition) throw new Error(message); };
-  function install(mode) {
+  function install(mode, targetDate = '2026-12-01') {
     let submitted = 0;
     let chosen = '';
     let selected = false;
     let agreementReady = false;
+    let appliedDate = mode === 'same-date' ? targetDate : undefined;
     const plan = {
-      date: '2026-12-01', start: '16:00', end: '18:30', people: 9,
+      date: targetDate, start: '16:00', end: '18:30', people: 9,
       kitchens: ['XS-03', 'XS-02', 'XS-01'], deadline: Date.now() + 15_000
     };
     const indexRoute = '#/featuredStalls/roomReserve/Index';
@@ -30,40 +31,65 @@
       '<article class="room-card"><div class="title">下沙校区' + id + '</div>' +
       '<div class="btn-apply">' + (available ? '预订' : '已约满') + '</div>' +
       '<div class="count">10</div><span class="slot-tag ' + (available ? 'bookable' : 'booked') +
-      '">16:00～18:30</span></article>';
+      '">16:00～18:30</span>' + (mode === 'weekend' ? '<span class="slot-tag booked">10:30～13:00</span>' : '') + '</article>';
     function showList() {
       lab.innerHTML = '<div class="room-reserve"><div class="date-bar">' +
-        '<button class="uni-date-editor">日历</button></div><div class="yq-uni-p-r-list">' +
-        '<div class="no-data">当前日期无可预约厨房</div></div></div>';
+        '<strong class="date-li actived">26</strong><button class="uni-date-editor">日历</button></div><div class="yq-uni-p-r-list">' +
+        (mode === 'same-date' ? article('XS-03', false) : '<div class="no-data">当前日期无可预约厨房</div>') +
+        '</div></div>';
       lab.querySelector('.uni-date-editor').onclick = calendar;
     }
     const calendar = () => {
+      const [year, month, dayOfMonth] = targetDate.split('-').map(Number);
+      const previousMonth = new Date(Date.UTC(year, month - 2, 1));
       const pop = document.createElement('section');
       pop.className = 'uni-calendar__content';
-      pop.innerHTML = '<span class="uni-calendar__header-text">2026年11月</span>' +
-        '<button><span class="uni-calendar--right">次月</span></button>';
+      const heading = document.createElement('span');
+      heading.className = 'uni-calendar__header-text';
+      heading.textContent = previousMonth.getUTCFullYear() + '年' + (previousMonth.getUTCMonth() + 1) + '月';
+      const close = document.createElement('button');
+      close.className = 'uni-date-mask';
+      close.textContent = '关闭日历';
+      close.onclick = () => pop.remove();
+      pop.append(heading, close);
       lab.append(pop);
-      pop.querySelector('button').onclick = () => {
-        pop.querySelector('.uni-calendar__header-text').textContent = '2026年12月';
-        const previousDays = 2;
-        for (let index = 0; index < 7; index++) {
+
+      function renderMonth() {
+        heading.textContent = year + '年' + month + '月';
+        const previousDays = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+        for (let index = 0; index < 42; index++) {
           const day = document.createElement('button');
+          const number = index - previousDays + 1;
           day.className = 'uni-calendar-item__weeks-box';
-          day.innerHTML = '<span class="uni-calendar-item__weeks-box-text">' +
-            (index < previousDays ? 29 + index : index - previousDays + 1) + '</span>';
+          const monthCells = new Date(Date.UTC(year, month, 0)).getUTCDate();
+          day.disabled = number < 1 || number > monthCells;
+          const checkedNumber = mode === 'bad-calendar' ? dayOfMonth + 1 : dayOfMonth;
+          const mark = appliedDate && number === checkedNumber ? ' uni-calendar-item--checked' : '';
+          day.innerHTML = '<span class="uni-calendar-item__weeks-box-text' + mark + '">' +
+            (day.disabled ? '' : number) + '</span>';
           day.onclick = () => {
-            assert(index === previousDays, '日历选错了日期');
+            assert(number === dayOfMonth, '日历选错了日期');
+            appliedDate = targetDate;
             pop.remove();
+            if (mode === 'same-date') return;
             const list = lab.querySelector('.yq-uni-p-r-list');
             setTimeout(() => {
-              list.innerHTML = article('XS-03', false) + article('XS-02', true) + article('XS-01', true);
+              const open = !['weekend', 'weekday'].includes(mode);
+              list.innerHTML = article('XS-03', false) + article('XS-02', open) + article('XS-01', open);
               lab.querySelectorAll('.room-card').forEach(card => card.onclick = () =>
                 openForm(card.querySelector('.title').textContent.slice(-5)));
-            }, 140);
+            }, 180);
           };
           pop.append(day);
         }
-      };
+      }
+      if (appliedDate) renderMonth();
+      else {
+        const next = document.createElement('button');
+        next.innerHTML = '<span class="uni-calendar--right">次月</span>';
+        next.onclick = () => { next.remove(); renderMonth(); };
+        pop.append(next);
+      }
     };
     showList();
     window.onhashchange = event => {
@@ -74,10 +100,10 @@
       chosen = room;
       selected = false;
       agreementReady = false;
-      location.hash = '/featuredStalls/roomReserve/ReserveForm?appDate=2026-12-01';
+      location.hash = '/featuredStalls/roomReserve/ReserveForm?appDate=' + targetDate;
       lab.innerHTML = '<div class="reserve-form"><h2 class="title-text">下沙校区' + room + '</h2>' +
         '<section class="field-card"><div class="field-card-label">预约日期</div>' +
-        '<div class="field-card-value">12-01 周二</div></section>' +
+        '<div class="field-card-value">' + (mode === 'bad-form' ? '11-30' : targetDate.slice(5)) + ' 示例</div></section>' +
         '<section class="field-card"><div class="field-card-label">联系人</div>' +
         '<div class="field-card-value">示例联系人，13800000000</div></section>' +
         '<section class="field-card"><div class="field-card-label">预约时段</div>' +
@@ -150,7 +176,9 @@
       ['taken', true, 'success', 1, 'XS-01'],
       ['empty', true, 'unavailable', 0, 'XS-01'],
       ['locked', false, 'cancelled', 0, 'XS-02'],
-      ['edited', true, 'failed', 0, 'XS-02']
+      ['edited', true, 'failed', 0, 'XS-02'],
+      ['bad-calendar', true, 'failed', 0, ''],
+      ['bad-form', true, 'failed', 0, 'XS-02']
     ]) {
       const { plan, info } = install(mode);
       const result = await KitchenBooking.runBooking(plan,
@@ -167,7 +195,18 @@
       assert(info().submitted === count, '提交次数错误');
       await new Promise(resolve => setTimeout(resolve, 20));
     }
-    results.textContent = 'PASS: priority, fallback, empty list refresh, calendar, slot, agreement, single-submit, recheck, receipt';
+    for (const [mode, date, expected] of [
+      ['weekend', '2026-11-28', ['10:30~13:00', '16:00~18:30']],
+      ['weekday', '2026-11-30', ['16:00~18:30']],
+      ['same-date', '2026-11-30', ['16:00~18:30']]
+    ]) {
+      const { info } = install(mode, date);
+      const rooms = await KitchenBooking.peekSlots(date, Date.now() + 10_000);
+      const options = KitchenPlan.listedSlots(rooms, ['XS-03'], 9);
+      assert(JSON.stringify(options) === JSON.stringify(expected), mode + '时段来源错误');
+      assert(info().chosen === '' && info().submitted === 0, '读取时段操作进入了预约表单');
+    }
+    results.textContent = 'PASS: real slot labels, calendar verification, mismatched form, fallback, no duplicate, receipt';
   } catch (error) {
     results.textContent = 'FAIL: ' + error.stack;
   }

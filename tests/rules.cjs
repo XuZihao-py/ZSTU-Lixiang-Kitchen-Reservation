@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const {
-  buildPlan, candidateKitchens, normalizeSlot, localDay, canClaim, canCommit
+  buildPlan, candidateKitchens, listedSlots, matchesFormDate, normalizeSlot, localDay, canClaim, canCommit
 } = require('../extension/rules.js');
 
 const sample = {
@@ -53,4 +53,15 @@ assert.equal(canClaim({ ...running, state: 'submitting' }, 'test', 7, plan.start
 assert.equal(canCommit(running, 'test', 7, 'first', plan.startAt), true);
 assert.equal(canCommit(running, 'test', 7, 'second', plan.startAt), false);
 assert.equal(canCommit({ ...running, state: 'submitting' }, 'test', 7, 'first', plan.startAt), false);
+const published = [
+  { id: 'XS-03', capacity: 10, listed: ['16:00～18:30', '10:30 ~ 13:00', 'invalid'], bookable: [] },
+  { id: 'LP-01', capacity: 8, listed: ['09:00~11:00'], bookable: ['09:00~11:00'] },
+  { id: 'XS-02', capacity: 10, listed: ['16:00~18:30'], bookable: [] }
+];
+assert.deepEqual(listedSlots(published, ['XS-03', 'LP-01', 'XS-02'], 9), ['10:30~13:00', '16:00~18:30']);
+assert.deepEqual(listedSlots(published.slice(2), ['XS-02'], 9), ['16:00~18:30']);
+assert(matchesFormDate('2026-11-30', '2026-11-30', '11-30 周一'));
+assert(!matchesFormDate('2026-11-30', '2026-11-30', '11-28 周六'));
+assert(!matchesFormDate('2026-11-30', '2026-11-28', '11-30 周一'));
+assert(!matchesFormDate('2026-11-30', '2026-11-30', '2027-11-30'));
 console.log('规则测试通过。');

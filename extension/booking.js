@@ -1,5 +1,5 @@
 (() => {
-  const { normalizeSlot, candidateKitchens } = KitchenPlan;
+  const { normalizeSlot, candidateKitchens, matchesFormDate, validDate } = KitchenPlan;
   const INDEX = '#/featuredStalls/roomReserve/Index';
   const FORM = '#/featuredStalls/roomReserve/ReserveForm';
   const BOOKING_ROOT = 'https://zhst.zstu.edu.cn/statusweb/h5/universityFrontOfficeProgram/';
@@ -16,13 +16,10 @@
   const kitchenId = value => value.match(/(?:XS|LP)-\d{2}$/i)?.[0].toUpperCase();
   const outcome = (state, message) => ({ state, message });
 
-  async function runBooking(plan, tell, signal) {
-    const targetSlot = plan.start + '~' + plan.end;
-    let committed = false;
-
+  function pageAccess(deadline, signal) {
     function guard() {
       if (signal.aborted) throw new Error('任务已停止。');
-      if (Date.now() >= plan.deadline) throw new Error('预约尝试窗口已结束。');
+      if (Date.now() >= deadline) throw new Error('预约尝试窗口已结束。');
     }
 
     async function waitFor(check, error, timeout = 10_000) {
@@ -43,72 +40,119 @@
       }
       element.click();
     }
+    return { guard, waitFor, click };
+  }
 
-    function calendarMonth() {
-      const heading = find('.uni-calendar__header-text', () => true);
-      const month = text(heading).match(/(\d{4})\D+(\d{1,2})/);
-      return month ? Number(month[1]) * 12 + Number(month[2]) - 1 : null;
+  function calendarMonth() {
+    const heading = find('.uni-calendar__header-text', () => true);
+    const month = text(heading).match(/(\d{4})\D+(\d{1,2})/);
+    return month ? Number(month[1]) * 12 + Number(month[2]) - 1 : null;
+  }
+
+  async function selectDate(date, { click, waitFor }) {
+    const previous = cards();
+    const previousEmpty = find('.yq-uni-p-r-list .no-data', () => true);
+    const editor = await waitFor(() => find('.date-bar .uni-date-editor', () => true),
+      '找不到预约日历，请检查登录状态和预约页。');
+    click(editor);
+    const [year, month, day] = date.split('-').map(Number);
+    const requested = year * 12 + month - 1;
+    let displayed = await waitFor(calendarMonth, '预约日历未加载。');
+    const dayText = box => Number(text(query('.uni-calendar-item__weeks-box-text', box)));
+    const checkedDay = () => find('.uni-calendar-item__weeks-box', box =>
+      !box.classList.contains('uni-calendar-item--disable') &&
+      Boolean(query('.uni-calendar-item--checked', box)));
+    async function closeCalendar() {
+      const close = find('.uni-date-mask, .dialog-close', () => true);
+      if (!close) throw new Error('找不到关闭日历的控件。');
+      click(close);
+      await waitFor(() => calendarMonth() === null, '核对后日历未关闭。');
     }
 
-    async function selectDate() {
-      const previous = cards();
-      const previousEmpty = find('.yq-uni-p-r-list .no-data', () => true);
-      click(await waitFor(() => find('.date-bar .uni-date-editor', () => true),
-        '找不到预约日历，请检查登录状态和预约页。'));
-      const [year, month, day] = plan.date.split('-').map(Number);
-      const requested = year * 12 + month - 1;
-      let displayed = await waitFor(calendarMonth, '预约日历未加载。');
-      for (let changes = 0; changes < 2 && displayed !== requested; changes++) {
-        const direction = displayed < requested ? 'right' : 'left';
-        const arrow = find('.uni-calendar--' + direction, () => true);
-        if (!arrow) break;
-        click(arrow.closest('.uni-calendar__header-btn-box, button') || arrow);
-        const lastMonth = displayed;
-        displayed = await waitFor(() => {
-          const next = calendarMonth();
-          return next !== null && next !== lastMonth ? next : null;
-        }, '预约日历月份未切换。');
-      }
-      if (displayed !== requested) throw new Error('预约日历未显示目标月份。');
-
-      const firstWeekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
-      const boxes = all('.uni-calendar-item__weeks-box').filter(visible);
-      const dayText = box => Number(text(query('.uni-calendar-item__weeks-box-text', box)));
-      const indexed = boxes[firstWeekday + day - 1];
-      const matching = boxes.filter(box => dayText(box) === day && !box.classList.contains('uni-calendar-item--disable'));
-      const selected = indexed && dayText(indexed) === day ? indexed : matching.length === 1 ? matching[0] : null;
-      if (!selected || selected.classList.contains('uni-calendar-item--disable')) {
-        throw new Error('目标日期暂不可选，请检查页面放号状态。');
-      }
-      click(selected);
-      await pause(150);
-      const confirm = find('.uni-datetime-picker--btn', button => /^(确认|确定)$/.test(text(button)));
-      if (confirm) click(confirm);
-      await waitFor(() => {
-        const current = cards();
-        const currentEmpty = find('.yq-uni-p-r-list .no-data', () => true);
-        return current.some(card => !previous.includes(card)) ||
-          (currentEmpty && currentEmpty !== previousEmpty);
-      }, '未等到目标日期的厨房列表。', 18_000);
+    const currentDay = checkedDay();
+    if (previous.length && displayed === requested && currentDay && dayText(currentDay) === day) {
+      await closeCalendar();
+      return;
     }
 
-    function availableRooms() {
-      return cards().map(card => ({
-        card,
-        id: kitchenId(text(query('.title', card))),
-        capacity: Number(text(query('.room-card-bot .count, .count', card))),
-        bookable: /^(预订|预约)$/.test(text(query('.btn-apply', card))) ?
-          all('.slot-tag.bookable', card).map(tag => normalizeSlot(text(tag))) : []
-      }));
+    for (let changes = 0; changes < 2 && displayed !== requested; changes++) {
+      const direction = displayed < requested ? 'right' : 'left';
+      const arrow = find('.uni-calendar--' + direction, () => true);
+      if (!arrow) break;
+      click(arrow.closest('.uni-calendar__header-btn-box, button') || arrow);
+      const lastMonth = displayed;
+      displayed = await waitFor(() => {
+        const next = calendarMonth();
+        return next !== null && next !== lastMonth ? next : null;
+      }, '预约日历月份未切换。');
     }
+    if (displayed !== requested) throw new Error('预约日历未显示目标月份。');
+
+    const firstWeekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+    const boxes = all('.uni-calendar-item__weeks-box').filter(visible);
+    const indexed = boxes[firstWeekday + day - 1];
+    const matching = boxes.filter(box => dayText(box) === day && !box.classList.contains('uni-calendar-item--disable'));
+    const selected = indexed && dayText(indexed) === day ? indexed : matching.length === 1 ? matching[0] : null;
+    if (!selected || selected.classList.contains('uni-calendar-item--disable')) {
+      throw new Error('目标日期暂不可选，请检查页面放号状态。');
+    }
+    click(selected);
+    await pause(150);
+    const confirm = find('.uni-datetime-picker--btn', button => /^(确认|确定)$/.test(text(button)));
+    if (confirm) click(confirm);
+    await waitFor(() => {
+      const current = cards();
+      const currentEmpty = find('.yq-uni-p-r-list .no-data', () => true);
+      return current.some(card => !previous.includes(card)) ||
+        (currentEmpty && currentEmpty !== previousEmpty);
+    }, '未等到目标日期的厨房列表。', 18_000);
+
+    await waitFor(() => calendarMonth() === null, '选日后日历未关闭。');
+    click(editor);
+    const checked = await waitFor(() => calendarMonth() === null ? null : checkedDay(),
+      '日历未显示已选日期。');
+    if (calendarMonth() !== requested || dayText(checked) !== day) {
+      throw new Error('网页日历实际选中日期与目标 ' + date + ' 不一致。');
+    }
+    await closeCalendar();
+  }
+
+  function availableRooms() {
+    return cards().map(card => ({
+      card,
+      id: kitchenId(text(query('.title', card))),
+      capacity: Number(text(query('.room-card-bot .count, .count', card))),
+      listed: all('.slot-tag', card).map(tag => normalizeSlot(text(tag))).filter(Boolean),
+      bookable: /^(预订|预约)$/.test(text(query('.btn-apply', card))) ?
+        all('.slot-tag.bookable', card).map(tag => normalizeSlot(text(tag))) : []
+    }));
+  }
+
+  function chooseIndex({ waitFor }) {
+    return waitFor(() => hashIs(INDEX) && query('.room-reserve .date-bar') &&
+      (cards().length || find('.yq-uni-p-r-list .no-data', () => true)),
+    '未加载共享厨房列表，请检查校园网络及登录状态。', 24_000);
+  }
+
+  async function peekSlots(date, deadline) {
+    if (!validDate(date)) throw new Error('请选择有效的预约日期。');
+    const page = pageAccess(deadline, new AbortController().signal);
+    await chooseIndex(page);
+    await selectDate(date, page);
+    return availableRooms().filter(room => room.id).map(({ id, capacity, listed }) => ({ id, capacity, listed }));
+  }
+
+  async function runBooking(plan, tell, signal) {
+    const targetSlot = plan.start + '~' + plan.end;
+    let committed = false;
+    const page = pageAccess(plan.deadline, signal);
+    const { guard, waitFor, click } = page;
 
     function matchesForm(id) {
       const params = new URLSearchParams(location.hash.split('?')[1]);
       const date = text(query('.field-card-value', field('预约日期') ?? document));
-      const monthDay = date.match(/^(\d{1,2})[-/月](\d{1,2})/);
-      const observed = monthDay?.slice(1).map(part => part.padStart(2, '0')).join('-');
       return hashIs(FORM) && kitchenId(text(query('.reserve-form .title-text'))) === id &&
-        params.get('appDate') === plan.date && observed === plan.date.slice(5);
+        matchesFormDate(plan.date, params.get('appDate'), date);
     }
 
     function peopleButton() {
@@ -169,15 +213,11 @@
       return null;
     }
 
-    function chooseIndex() {
-      return waitFor(() => hashIs(INDEX) && query('.room-reserve .date-bar') &&
-        (cards().length || find('.yq-uni-p-r-list .no-data', () => true)),
-      '未加载共享厨房列表，请检查校园网络及登录状态。', 24_000);
-    }
-
     async function chooseSlot(preferred) {
       click(preferred.card);
-      await waitFor(() => matchesForm(preferred.id), '厨房或日期未与计划匹配，请人工查看。');
+      await waitFor(() => hashIs(FORM) && field('预约日期') && text(query('.reserve-form .title-text')),
+        '未打开完整的预约表单，请人工查看。');
+      if (!matchesForm(preferred.id)) throw new Error('表单厨房、预约日期或链接与计划不一致，已停止。');
       click(await waitFor(() => field('预约时段'), '预约表单未提供时段选择。'));
       const popup = await waitFor(() => find('.time-slot-popup-main', () => true), '时段选择窗口未打开。');
       await waitFor(() => find('.slot-item, .empty-tip', () => true, popup), '时段数据未加载。');
@@ -199,8 +239,8 @@
     async function chooseKitchen() {
       const attempted = new Set();
       while (attempted.size < plan.kitchens.length) {
-        await chooseIndex();
-        await selectDate();
+        await chooseIndex(page);
+        await selectDate(plan.date, page);
         const [preferred] = candidateKitchens(plan, availableRooms()).filter(room => !attempted.has(room.id));
         if (!preferred) return null;
         if (await chooseSlot(preferred)) return preferred;
@@ -245,7 +285,7 @@
     }
   }
 
-  globalThis.KitchenBooking = { runBooking };
+  globalThis.KitchenBooking = { runBooking, peekSlots };
   if (!globalThis.chrome?.runtime?.id || !location.href.startsWith(BOOKING_ROOT)) return;
 
   let timer;
@@ -297,7 +337,15 @@
     if (area === 'local' && changes.plan) arm(changes.plan.newValue).catch(console.warn);
   });
   const check = () => readPlan().then(arm).catch(console.warn);
-  chrome.runtime.onMessage.addListener(message => { if (message.kind === 'wakeup') check(); });
+  chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+    if (message.kind === 'wakeup') check();
+    if (message.kind !== 'list-slots') return;
+    peekSlots(message.date, message.deadline).then(
+      rooms => respond({ ok: true, rooms }),
+      error => respond({ ok: false, error: error.message })
+    );
+    return true;
+  });
   window.addEventListener('hashchange', check);
   check();
 })();

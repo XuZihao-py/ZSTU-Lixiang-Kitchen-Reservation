@@ -1,13 +1,18 @@
-const { KITCHENS, ACTIVE, buildPlan, localDay, formatTime } = KitchenPlan;
+const { KITCHENS, ACTIVE, buildPlan, localDay, formatTime, validDate, listedSlots } = KitchenPlan;
 const byId = id => document.getElementById(id);
 const form = byId('plan-form');
 const people = byId('people');
 const roomSelect = byId('room');
 const edit = byId('settings');
 const priority = byId('priority');
+const dateInput = byId('date');
+const slot = byId('slot');
 let kitchens = [];
 let plan;
 let busy = false;
+let reading = false;
+let lookup;
+let slotError = '';
 
 const labels = {
   scheduled: '已安排', preparing: '准备中', waiting: '待命', running: '预约中',
@@ -15,13 +20,22 @@ const labels = {
   uncertain: '待核对', failed: '预约失败', cancelled: '已停止', expired: '已超时'
 };
 const tomorrow = () => localDay(Date.now() + 86_400_000);
-const input = () => ({
-  date: byId('date').value, start: byId('start').value, end: byId('end').value,
-  people: people.value, kitchens, authorized: byId('authorized').checked
-});
+function input() {
+  const [start = '', end = ''] = slot.value.split('~');
+  return { date: dateInput.value, start, end, people: people.value, kitchens, authorized: byId('authorized').checked };
+}
 
 for (let count = 1; count <= 10; count++) people.add(new Option(count + ' 人', count));
 byId('date').min = tomorrow();
+
+function rememberDraft() {
+  const draft = { date: dateInput.value, people: people.value, kitchens, slot: slot.value };
+  chrome.storage.session.set({ draft }).catch(console.warn);
+}
+
+function restoreSlot(value) {
+  if ([...slot.options].some(option => option.value === value)) slot.value = value;
+}
 
 function displayError(message = '') {
   byId('error').textContent = message;
@@ -68,7 +82,9 @@ function renderChoices(focusIndex, focusAction) {
           [kitchens[index], kitchens[target]] = [kitchens[target], kitchens[index]];
           renderChoices(target, action);
         }
+        renderSlots();
         render();
+        rememberDraft();
       });
       controls.append(button);
     }
@@ -82,12 +98,59 @@ function renderChoices(focusIndex, focusAction) {
   }
 }
 
+function renderSlots() {
+  const active = Boolean(plan && ACTIVE.includes(plan.state));
+  const selected = active ? plan.start + '~' + plan.end : slot.value;
+  const eligible = kitchens.length ? kitchens : KITCHENS.map(room => room.id);
+  const options = active ? [selected] : lookup?.date === dateInput.value && !reading ?
+    listedSlots(lookup.rooms, eligible, Number(people.value)) : [];
+  slot.replaceChildren(new Option(reading ? '正在读取网页' : '请选择网页时段', ''));
+  for (const value of options) slot.add(new Option(value.replace('~', '–'), value));
+  slot.value = options.includes(selected) ? selected : '';
+  slot.disabled = active || !options.length;
+  byId('refresh-slots').disabled = active || reading || !validDate(dateInput.value) || dateInput.value < tomorrow();
+  byId('slot-info').textContent = reading ? '正在核对日期和网页时段…' : slotError ||
+    (active ? '已保存 ' + plan.date + ' 的预约时段。' : lookup?.date === dateInput.value ?
+      (options.length ? '已核对网页日期 ' + lookup.date + '。余位以预约时为准。' :
+        '网页在 ' + lookup.date + ' 未列出符合人数及所选厨房的时段。') : '选定日期后，从预约网页读取。');
+}
+
+async function refreshSlots() {
+  if (reading || (plan && ACTIVE.includes(plan.state))) return;
+  const date = dateInput.value;
+  const selected = lookup?.date === date ? slot.value : '';
+  lookup = undefined;
+  slotError = '';
+  slot.value = '';
+  if (!validDate(date) || date < tomorrow()) {
+    renderSlots();
+    render();
+    return;
+  }
+  reading = true;
+  renderSlots();
+  render();
+  try {
+    const response = await chrome.runtime.sendMessage({ kind: 'lookup-slots', date });
+    if (!response?.ok) throw new Error(response?.error || '未能读取网页时段。');
+    if (response.lookup.date === date) lookup = response.lookup;
+  } catch (error) {
+    slotError = error.message;
+  } finally {
+    reading = false;
+    renderSlots();
+    restoreSlot(selected);
+    render();
+    rememberDraft();
+  }
+}
+
 function render() {
   const active = Boolean(plan && ACTIVE.includes(plan.state));
   const previousUncertain = plan?.state === 'uncertain' || (plan?.state === 'manual' && Boolean(plan.commitAt));
   let windowPlan = active ? plan : null;
   let validation = '';
-  if (!active && input().date && kitchens.length) {
+  if (!active && input().date && kitchens.length && slot.value) {
     try {
       windowPlan = buildPlan({ ...input(), authorized: true });
     } catch (error) {
@@ -100,12 +163,13 @@ function render() {
     validation || '请选择日期、时段和厨房';
   byId('trigger').textContent = windowPlan ?
     '开始预约 ' + formatTime(windowPlan.startAt) : '';
-  byId('status').textContent = plan?.message ?? '';
+  const prior = !active && plan?.date && plan.date !== dateInput.value ? '（上次任务 ' + plan.date + '）' : '';
+  byId('status').textContent = plan?.message ? plan.message + prior : '';
   byId('status').hidden = !plan?.message;
   byId('verify-previous').hidden = !previousUncertain;
-  edit.disabled = active || busy;
+  edit.disabled = active || busy || reading;
   byId('begin').hidden = active;
-  byId('begin').disabled = busy || !windowPlan || !input().authorized ||
+  byId('begin').disabled = busy || reading || !windowPlan || !input().authorized ||
     (previousUncertain && !byId('checked-previous').checked);
   byId('cancel').hidden = !active;
   byId('cancel').disabled = busy || plan?.state === 'submitting';
@@ -133,36 +197,47 @@ async function message(kind, details = {}) {
 form.addEventListener('submit', event => {
   event.preventDefault();
   const values = input();
-  message('schedule', { input: values, checkedPrevious: byId('checked-previous').checked });
+  message('schedule', { input: values, lookupId: lookup?.id, checkedPrevious: byId('checked-previous').checked });
 });
-form.addEventListener('input', () => {
+form.addEventListener('input', event => {
   displayError();
   byId('add').disabled = !roomSelect.value;
+  if (lookup?.date !== dateInput.value || event.target === people) renderSlots();
   render();
+  if (edit.contains(event.target)) rememberDraft();
 });
 byId('add').addEventListener('click', () => {
   if (!roomSelect.value) return;
   kitchens.push(roomSelect.value);
   renderChoices();
+  renderSlots();
   render();
+  rememberDraft();
 });
+dateInput.addEventListener('change', refreshSlots);
+byId('refresh-slots').addEventListener('click', refreshSlots);
 byId('visit').addEventListener('click', () => message('visit'));
 byId('cancel').addEventListener('click', () => message('cancel'));
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local' || !changes.plan) return;
   plan = changes.plan.newValue;
+  renderSlots();
   render();
 });
 
-chrome.storage.local.get('plan').then(data => {
+Promise.all([chrome.storage.local.get('plan'), chrome.storage.session.get(['slotLookup', 'draft'])]).then(([data, session]) => {
   plan = data.plan;
-  if (plan) {
-    kitchens = plan.kitchens.filter(id => KITCHENS.some(room => room.id === id));
-    byId('date').value = plan.date;
-    byId('start').value = plan.start;
-    byId('end').value = plan.end;
-    people.value = String(plan.people);
+  const saved = plan && ACTIVE.includes(plan.state) ? plan : session.draft ?? plan;
+  if (saved) {
+    kitchens = (saved.kitchens || []).filter(id => KITCHENS.some(room => room.id === id));
+    dateInput.value = saved.date || '';
+    people.value = String(saved.people || 1);
+  } else if (session.slotLookup?.date >= tomorrow()) {
+    dateInput.value = session.slotLookup.date;
   }
+  if (session.slotLookup?.date === dateInput.value) lookup = session.slotLookup;
   renderChoices();
+  renderSlots();
+  if (saved && lookup) restoreSlot(saved.slot ?? (saved.start + '~' + saved.end));
   render();
 }).catch(error => displayError(error.message));

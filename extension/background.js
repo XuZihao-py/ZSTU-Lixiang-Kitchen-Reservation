@@ -1,10 +1,11 @@
 importScripts('rules.js');
 
-const { BOOKING_URL, ACTIVE, buildPlan, canClaim, canCommit } = KitchenPlan;
+const { BOOKING_URL, ACTIVE, buildPlan, canClaim, canCommit, validDate, localDay, listedSlots } = KitchenPlan;
 const PREPARE = 'kitchen-prepare';
 const EXPIRE = 'kitchen-expire';
 const START = 'kitchen-start';
 let pending = Promise.resolve();
+let lookingUp = false;
 
 function enqueue(action) {
   const result = pending.then(action);
@@ -76,16 +77,51 @@ async function reconcile() {
   }
 }
 
+async function lookupSlots(date) {
+  if (!validDate(date) || date <= localDay(Date.now())) throw new Error('请选择明天或之后的日期。');
+  if (lookingUp) throw new Error('已有时段查询，请稍后重试。');
+  lookingUp = true;
+  let tabId;
+  try {
+    const tab = await chrome.tabs.create({ url: 'about:blank', active: false });
+    tabId = tab.id;
+    await chrome.tabs.update(tabId, { url: BOOKING_URL });
+    const deadline = Date.now() + 27_000;
+    let result;
+    while (Date.now() < deadline) {
+      result = await chrome.tabs.sendMessage(tabId, { kind: 'list-slots', date, deadline }, { frameId: 0 })
+        .catch(() => null);
+      if (result) break;
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    if (!result?.ok) throw new Error(result?.error || '无法读取预约列表，请先打开预约网页登录，再重试。');
+    const lookup = { id: crypto.randomUUID(), date, rooms: result.rooms };
+    await chrome.storage.session.set({ slotLookup: lookup });
+    return { ok: true, lookup };
+  } finally {
+    if (tabId != null) await chrome.tabs.remove(tabId).catch(() => {});
+    lookingUp = false;
+  }
+}
+
+function fromPopup(sender) {
+  return sender.url === chrome.runtime.getURL('popup.html');
+}
+
 async function handle(request, sender) {
   const plan = await read();
-  const fromPopup = sender.url === chrome.runtime.getURL('popup.html');
-  if (fromPopup) {
+  if (fromPopup(sender)) {
     if (request.kind === 'schedule') {
       if (plan && ACTIVE.includes(plan.state)) throw new Error('已有任务，请先停止当前任务。');
       if ((plan?.state === 'uncertain' || (plan?.state === 'manual' && plan.commitAt)) && request.checkedPrevious !== true) {
         throw new Error('请先在「我的预约」核对上次结果，再设置新的任务。');
       }
       const next = buildPlan(request.input);
+      const { slotLookup } = await chrome.storage.session.get('slotLookup');
+      if (!slotLookup || slotLookup.id !== request.lookupId || slotLookup.date !== next.date ||
+          !listedSlots(slotLookup.rooms, next.kitchens, next.people).includes(next.start + '~' + next.end)) {
+        throw new Error('请重新读取所选日期的网页时段。');
+      }
       await update(next, {
         id: crypto.randomUUID(), state: 'scheduled', message: '计划已保存。'
       });
@@ -145,7 +181,9 @@ async function handle(request, sender) {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, respond) => {
-  enqueue(() => handle(request, sender)).then(respond, error => respond({ ok: false, error: error.message }));
+  const operation = request.kind === 'lookup-slots' && fromPopup(sender) ?
+    lookupSlots(request.date) : enqueue(() => handle(request, sender));
+  operation.then(respond, error => respond({ ok: false, error: error.message }));
   return true;
 });
 chrome.alarms.onAlarm.addListener(alarm => {

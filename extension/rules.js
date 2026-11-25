@@ -34,16 +34,36 @@
 
   function normalizeSlot(value) {
     const match = String(value ?? '').trim().match(/^(\d{1,2}:\d{2})\s*[~～—–−-]\s*(\d{1,2}:\d{2})$/);
-    return match ? match.slice(1).map(time => time.padStart(5, '0')).join('~') : '';
+    if (!match) return '';
+    const [start, end] = match.slice(1).map(time => time.padStart(5, '0'));
+    return validTime(start) && validTime(end) && start < end ? start + '~' + end : '';
+  }
+
+  const validTime = time => /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time);
+
+  function validDate(date) {
+    const time = dayStart(date);
+    return /^\d{4}-\d{2}-\d{2}$/.test(date) && Number.isFinite(time) && localDay(time) === date;
+  }
+
+  function matchesFormDate(expected, routeDate, formText) {
+    if (routeDate !== expected) return false;
+    const match = formText.match(/^(?:(\d{4})[-/年])?(\d{1,2})[-/月](\d{1,2})(?!\d)/);
+    if (!match) return false;
+    const [year, month, day] = match.slice(1);
+    return (year || expected.slice(0, 4)) + '-' + month.padStart(2, '0') + '-' +
+      day.padStart(2, '0') === expected;
+  }
+
+  function listedSlots(rooms, kitchens, people) {
+    const eligible = rooms.filter(room => kitchens.includes(room.id) && room.capacity >= people);
+    return [...new Set(eligible.flatMap(room => room.listed.map(normalizeSlot).filter(Boolean)))].sort();
   }
 
   function buildPlan(input, now = Date.now()) {
     const date = input.date;
+    if (!validDate(date)) throw new Error('请选择有效的预约日期。');
     const bookingDay = dayStart(date);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(bookingDay) || localDay(bookingDay) !== date) {
-      throw new Error('请选择有效的预约日期。');
-    }
-    const validTime = time => /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time);
     if (!validTime(input.start) || !validTime(input.end) || input.start >= input.end) {
       throw new Error('请选择有效的预约时段。');
     }
@@ -97,7 +117,7 @@
   }
 
   const api = { BOOKING_URL, KITCHENS, ACTIVE, buildPlan, localDay, formatTime, normalizeSlot,
-    candidateKitchens, canClaim, canCommit };
+    candidateKitchens, listedSlots, matchesFormDate, validDate, canClaim, canCommit };
   globalThis.KitchenPlan = api;
   if (typeof module !== 'undefined') module.exports = api;
 })();

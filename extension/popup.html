@@ -34,9 +34,16 @@
           <label>用餐人数
             <select id="people" aria-label="用餐人数"></select>
           </label>
-          <label>时段开始<input id="start" type="time" value="16:00" required></label>
-          <label>时段结束<input id="end" type="time" value="18:30" required></label>
         </div>
+
+        <section class="slot-field" aria-labelledby="slot-heading">
+          <h2 id="slot-heading">预约时段</h2>
+          <div class="picker">
+            <select id="slot" aria-label="预约时段" required disabled></select>
+            <button id="refresh-slots" type="button" class="secondary" disabled>读取时段</button>
+          </div>
+          <p id="slot-info" class="hint" role="status"></p>
+        </section>
 
         <section class="preferences" aria-labelledby="preferences-heading">
           <h2 id="preferences-heading">厨房优先顺序</h2>
