@@ -1,4 +1,4 @@
-importScripts('rules.js');
+importScripts('rules.js', 'booking-log.js');
 
 const { BOOKING_URL, ACTIVE, buildPlan, canClaim, canCommit, validDate, localDay, listedSlots } = KitchenPlan;
 const PREPARE = 'kitchen-prepare';
@@ -6,6 +6,7 @@ const EXPIRE = 'kitchen-expire';
 const START = 'kitchen-start';
 let pending = Promise.resolve();
 let lookingUp = false;
+let bookingHistory;
 
 function enqueue(action) {
   const result = pending.then(action);
@@ -17,9 +18,26 @@ async function read() {
   return (await chrome.storage.local.get('plan')).plan;
 }
 
-async function update(plan, changes) {
+async function saveEvent(plan, kind, details = {}, savePlan = false) {
+  if (kind) {
+    try {
+      const history = bookingHistory ?? (await chrome.storage.local.get('bookingHistory')).bookingHistory ?? [];
+      const updated = KitchenLog.addEvent(history, plan, kind, details);
+      if (updated !== history) {
+        await chrome.storage.local.set(savePlan ? { plan, bookingHistory: updated } : { bookingHistory: updated });
+        bookingHistory = updated;
+        return;
+      }
+    } catch (error) {
+      console.warn('无法保存预约日志', error);
+    }
+  }
+  if (savePlan) await chrome.storage.local.set({ plan });
+}
+
+async function update(plan, changes, event = changes.state, details = {}) {
   const next = { ...plan, ...changes, updatedAt: Date.now() };
-  await chrome.storage.local.set({ plan: next });
+  await saveEvent(next, event, { ...details, at: next.updatedAt }, true);
   const badge = {
     scheduled: '待命', preparing: '准备', waiting: '待命', running: '进行',
     submitting: '确认', success: '成功', manual: '查看', uncertain: '核对',
@@ -30,8 +48,8 @@ async function update(plan, changes) {
   return next;
 }
 
-async function finish(plan, state, message) {
-  await update(plan, { state, message });
+async function finish(plan, state, message, reason) {
+  await update(plan, { state, message }, state, { reason });
   await chrome.alarms.clear(PREPARE);
   await chrome.alarms.clear(EXPIRE);
   await chrome.alarms.clear(START);
@@ -44,7 +62,8 @@ async function reconcile() {
   const now = Date.now();
   if (now >= plan.deadline) {
     await finish(plan, plan.state === 'submitting' ? 'uncertain' : 'expired',
-      plan.state === 'submitting' ? '提交后未收到明确回执，请到「我的预约」核对。' : '预约尝试窗口已结束。');
+      plan.state === 'submitting' ? '提交后未收到明确回执，请到「我的预约」核对。' : '预约尝试窗口已结束。',
+      plan.state === 'preparing' ? 'page' : undefined);
     return;
   }
   await chrome.alarms.create(EXPIRE, { when: plan.deadline });
@@ -62,7 +81,7 @@ async function reconcile() {
     }
     if (plan.state === 'running' || plan.state === 'submitting') {
       await finish(plan, plan.state === 'submitting' ? 'uncertain' : 'failed',
-        '预约标签页已关闭，请在「我的预约」查看实际结果。');
+        '预约标签页已关闭，请在「我的预约」查看实际结果。', 'closed');
       return;
     }
   }
@@ -73,7 +92,7 @@ async function reconcile() {
     });
     await chrome.tabs.update(tab.id, { url: BOOKING_URL });
   } catch {
-    await finish(plan, 'failed', 'Chrome 无法打开预约页。');
+    await finish(plan, 'failed', 'Chrome 无法打开预约页。', 'launch');
   }
 }
 
@@ -161,8 +180,13 @@ async function handle(request, sender) {
   }
   if (plan.runner !== request.runner || plan.runnerDocument !== sender.documentId ||
       !['running', 'submitting'].includes(plan.state)) return { ok: false };
+  if (request.kind === 'log-event' && plan.state === 'running' &&
+      ['attempt', 'skipped', 'verified'].includes(request.event)) {
+    await saveEvent(plan, request.event, { kitchen: request.kitchen });
+    return { ok: true };
+  }
   if (request.kind === 'progress' && plan.state === 'running') {
-    await update(plan, { message: request.message });
+    await update(plan, { message: '正在等待安全须知阅读条件完成。' }, 'notice');
     return { ok: true };
   }
   if (request.kind === 'commit' && canCommit(plan, request.id, tabId, request.runner, Date.now())) {
@@ -173,7 +197,7 @@ async function handle(request, sender) {
     const allowed = plan.state === 'submitting' ?
       ['success', 'manual', 'uncertain', 'failed'] : ['unavailable', 'manual', 'failed'];
     if (allowed.includes(request.state)) {
-      await finish(plan, request.state, request.message);
+      await finish(plan, request.state, request.message, request.reason);
       return { ok: true };
     }
   }
@@ -192,11 +216,11 @@ chrome.alarms.onAlarm.addListener(alarm => {
 chrome.runtime.onStartup.addListener(() => enqueue(async () => {
   const plan = await read();
   if (plan?.state === 'submitting') {
-    await finish(plan, 'uncertain', 'Chrome 在提交后重新启动，请到「我的预约」核对。');
+    await finish(plan, 'uncertain', 'Chrome 在提交后重新启动，请到「我的预约」核对。', 'restart');
     return;
   }
   if (['preparing', 'waiting', 'running'].includes(plan?.state)) {
-    await update(plan, { tabId: null, runner: null, runnerDocument: null, state: 'scheduled' });
+    await update(plan, { tabId: null, runner: null, runnerDocument: null, state: 'scheduled' }, 'restored');
   }
   await reconcile();
 }));
@@ -205,5 +229,5 @@ chrome.tabs.onRemoved.addListener(tabId => enqueue(async () => {
   const plan = await read();
   if (plan?.tabId !== tabId || !ACTIVE.includes(plan.state)) return;
   await finish(plan, plan.state === 'submitting' ? 'uncertain' : 'failed',
-    plan.state === 'submitting' ? '提交中关闭了页面，请到「我的预约」核对。' : '专用预约标签页已关闭。');
+    plan.state === 'submitting' ? '提交中关闭了页面，请到「我的预约」核对。' : '专用预约标签页已关闭。', 'closed');
 }));

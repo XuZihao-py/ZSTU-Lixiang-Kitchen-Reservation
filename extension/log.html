@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>预约日志 · 理享厨房预约助手</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="log.css">
+  <script src="rules.js" defer></script>
+  <script src="booking-log.js" defer></script>
+  <script src="log.js" defer></script>
+</head>
+<body class="log-page">
+  <header>
+    <h1>预约日志</h1>
+    <p class="hint">北京时间 · 最近 12 个任务</p>
+  </header>
+
+  <main>
+    <p id="empty-log" class="hint" role="status">正在读取预约日志…</p>
+    <section id="log-view" aria-labelledby="log-heading" hidden>
+      <div class="log-controls">
+        <label for="log-task">选择任务</label>
+        <select id="log-task"></select>
+        <button id="copy-log" class="secondary" type="button">复制日志</button>
+        <button id="download-log" class="primary" type="button">下载 TXT</button>
+      </div>
+      <p id="log-feedback" class="hint" role="status" hidden></p>
+
+      <div class="log-summary">
+        <h2 id="log-heading"></h2>
+        <p class="hint">厨房顺序 <span id="log-kitchens"></span></p>
+        <p class="hint">计划开始 <time id="log-start"></time></p>
+      </div>
+      <ol id="log-events" aria-label="执行记录"></ol>
+    </section>
+  </main>
+</body>
+</html>

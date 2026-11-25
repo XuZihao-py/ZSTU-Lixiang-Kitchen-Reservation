@@ -13,7 +13,7 @@
   const cards = () => all('.room-reserve .room-card').filter(visible);
   const field = name => find('.reserve-form .field-card', card => text(query('.field-card-label', card)) === name);
   const kitchenId = value => value.match(/(?:XS|LP)-\d{2}$/i)?.[0].toUpperCase();
-  const outcome = (state, message) => ({ state, message });
+  const outcome = (state, message, reason) => ({ state, message, reason });
 
   function pageAccess(deadline, signal) {
     function guard() {
@@ -183,8 +183,12 @@
   async function runBooking(plan, tell, signal) {
     const targetSlot = plan.start + '~' + plan.end;
     let committed = false;
+    let phase = 'page';
     const page = pageAccess(plan.deadline, signal);
     const { guard, waitFor, click } = page;
+    const track = (event, kitchen) => {
+      void tell('log-event', { event, kitchen }).catch(() => {});
+    };
 
     function matchesForm(id) {
       const params = new URLSearchParams(location.hash.split('?')[1]);
@@ -243,12 +247,12 @@
 
     function receipt() {
       if (location.hash.includes('/roomReserve/ReservePay')) {
-        return outcome('manual', '站点已进入付款页，请人工查看。');
+        return outcome('manual', '站点已进入付款页，请人工查看。', 'payment');
       }
       const label = find('uni-toast, uni-modal, [role="alert"], uni-text, span, div', element =>
         /^(预约成功|预约失败)$/.test(text(element)));
       if (text(label) === '预约成功') return outcome('success', '站点已显示「预约成功」。');
-      if (text(label) === '预约失败') return outcome('failed', '站点显示「预约失败」。');
+      if (text(label) === '预约失败') return outcome('failed', '站点显示「预约失败」。', 'rejected');
       return null;
     }
 
@@ -278,11 +282,16 @@
     async function chooseKitchen() {
       const attempted = new Set();
       while (attempted.size < plan.kitchens.length) {
+        phase = 'page';
         await chooseIndex(page);
+        phase = 'date';
         await selectDate(plan.date, page);
         const [preferred] = candidateKitchens(plan, availableRooms()).filter(room => !attempted.has(room.id));
         if (!preferred) return null;
+        phase = 'slot';
+        track('attempt', preferred.id);
         if (await chooseSlot(preferred)) return preferred;
+        track('skipped', preferred.id);
         attempted.add(preferred.id);
         guard();
         history.back();
@@ -295,32 +304,36 @@
       const preferred = await chooseKitchen();
       if (!preferred) return outcome('unavailable', '所选厨房的目标时段没有可用名额。');
 
+      phase = 'people';
       const people = await waitFor(peopleButton, '所选人数未出现在预约表单中。');
       if (!people.classList.contains('actived')) click(people);
       await waitFor(() => peopleButton()?.classList.contains('actived'), '站点未保存所选人数。');
       if (!contactReady() || field('补充信息')) {
-        return outcome('manual', '请核对联系人、人数或站点要求的补充信息。');
+        return outcome('manual', '请核对联系人、人数或站点要求的补充信息。', 'form');
       }
-      if (!await confirmNotice()) return outcome('manual', '请在预约页人工查看并确认使用须知。');
+      track('verified', preferred.id);
+      phase = 'notice';
+      if (!await confirmNotice()) return outcome('manual', '请在预约页人工查看并确认使用须知。', 'notice');
 
       const verifiedSubmit = () => matchesForm(preferred.id) && correctSlot() &&
         peopleButton()?.classList.contains('actived') && contactReady() && !field('补充信息') &&
         query('.reserve-form .agreement-check.checked') &&
         find('.reserve-form .btn-confirm', button => text(button) === '确认预约');
-      if (!verifiedSubmit()) return outcome('manual', '提交前的表单状态发生变化，请人工查看。');
+      if (!verifiedSubmit()) return outcome('manual', '提交前的表单状态发生变化，请人工查看。', 'changed');
 
+      phase = 'changed';
       guard();
       const permission = await tell('commit');
       if (!permission.ok) return outcome('cancelled', '任务已停止或本次提交已锁定。');
       const submit = verifiedSubmit();
-      if (!submit) return outcome('failed', '确认前表单发生变化，任务已停止。');
+      if (!submit) return outcome('failed', '确认前表单发生变化，任务已停止。', 'changed');
       committed = true;
       click(submit);
       return await waitFor(receipt, '未收到明确回执。', 20_000);
     } catch (error) {
       if (signal.aborted && !committed) return outcome('cancelled', '任务已停止。');
       if (committed) return outcome('uncertain', '已尝试确认预约，请在「我的预约」核对结果。');
-      return outcome('failed', error.message);
+      return outcome('failed', error.message, phase);
     }
   }
 
