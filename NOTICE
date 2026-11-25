@@ -3,3 +3,8 @@ Required Notice: Copyright 2026 Hsu Tzu-hao
 Cal Sans is distributed separately under the SIL Open Font License 1.1.
 See extension/fonts/CalSans-OFL.txt for the copyright and license.
 Source: https://github.com/calcom/sans/tree/7529124c86c5f94f57f95455b87f5104fc2295c2/fonts/calsans-cossui
+
+Lixiang Han Sans is a renamed subset of Adobe Source Han Sans CN VF 2.005.
+It contains the Chinese characters and punctuation used by the extension.
+See extension/fonts/SourceHanSans-OFL.txt for the copyright and SIL Open Font License 1.1.
+Source: https://github.com/adobe-fonts/source-han-sans/blob/6c709ca72d3d7c46ab42ebecc1a26e7d69595a37/Variable/TTF/Subset/SourceHanSansCN-VF.ttf
