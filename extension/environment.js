@@ -3,13 +3,29 @@ const byId = id => document.getElementById(id);
 const result = byId('environment-result');
 const retry = byId('recheck');
 const openTab = byId('show-tab');
-const shouldOpen = new URLSearchParams(location.search).get('open') === '1';
+const portalCheck = byId('portal-check');
+const milestones = [...document.querySelectorAll('#environment-progress li')];
+const params = new URLSearchParams(location.search);
+const shouldOpen = params.get('open') === '1';
 const owned = new Set();
 let relatedTab;
+let portalOnly = params.get('portal') === '1';
+let reachedPortal = false;
+let phase = 0;
+const progressLabels = {
+  pending: '未开始', current: '进行中', waiting: '待认证',
+  complete: '已完成', skipped: '已跳过', error: '异常'
+};
+const phases = {
+  'booking-direct': 0, unreachable: 0,
+  'portal-unreachable': 1, 'mobile-unavailable': 1, 'portal-home': 1, 'portal-catalog': 1, 'school-auth': 1,
+  'portal-handoff': 2, 'booking-return': 2, 'booking-login': 2, unready: 2,
+  'data-read': 3, 'data-empty': 3, ready: 3
+};
 
 const steps = {
   'booking-direct': ['预约直达页', '正在打开预约页，检查当前会话。', '无法打开预约直达页。'],
-  'portal-unreachable': ['数智浙理门户', '预约登录已失效，正在用手机模式打开学校门户。', '手机模式下门户未加载完成。请检查校园服务及网络。'],
+  'portal-unreachable': ['数智浙理门户', '正在用手机模式打开学校门户，尝试恢复预约会话。', '手机模式下门户未加载完成。请检查校园服务及网络。'],
   'mobile-unavailable': ['手机模式', '', 'Chrome 未能启用手机模式。请检查扩展的调试权限，或关闭冲突的开发者工具后重试。'],
   'portal-home': ['门户服务导航', '正在查找学校门户的服务入口。', '门户已打开，但找不到「服务」入口。'],
   'portal-catalog': ['理享食光服务入口', '正在服务中心查找「理享食光」。', '服务中心未载入「理享食光」入口。'],
@@ -28,7 +44,27 @@ const steps = {
   failed: ['浏览器扩展', '', 'Chrome 无法完成页面检测。请重新加载扩展后再试。']
 };
 
+function updateProgress(level, code) {
+  if (Object.hasOwn(phases, code)) phase = phases[code];
+  if (phase === 1) reachedPortal = true;
+  milestones.forEach((item, index) => {
+    let state = 'pending';
+    if ((index === 0 && portalOnly) || (index === 1 && phase > 1 && !reachedPortal)) {
+      state = 'skipped';
+    } else if (level === 'ready' || index < phase) {
+      state = 'complete';
+    } else if (index === phase) {
+      state = level === 'error' ? (code === 'school-auth' && retry.disabled ? 'waiting' : 'error') : 'current';
+    }
+    item.dataset.status = state;
+    item.querySelector('.progress-state').textContent = progressLabels[state];
+    if (index === phase && level !== 'ready') item.setAttribute('aria-current', 'step');
+    else item.removeAttribute('aria-current');
+  });
+}
+
 function show(level, code, tabId, data = {}) {
+  updateProgress(level, code);
   const [stage, progress, error] = steps[code] || steps.failed;
   relatedTab = tabId;
   result.dataset.level = level;
@@ -48,13 +84,19 @@ function show(level, code, tabId, data = {}) {
 async function check() {
   const previous = result.dataset.level === 'error' ? relatedTab : undefined;
   retry.disabled = true;
+  portalCheck.disabled = true;
+  reachedPortal = portalOnly;
+  phase = portalOnly ? 1 : 0;
+  show('checking', portalOnly ? 'portal-unreachable' : 'booking-direct', previous);
   try {
-    const response = await checkEnvironment({ open: shouldOpen, previous, publish: show, owned });
+    const response = await checkEnvironment({ open: shouldOpen, portalOnly, previous, publish: show, owned });
     retry.disabled = false;
     show(response.code === 'ready' ? 'ready' : 'error', response.code, response.tabId, response);
   } catch {
     retry.disabled = false;
     show('error', 'failed');
+  } finally {
+    portalCheck.disabled = false;
   }
 }
 
@@ -67,6 +109,10 @@ openTab.addEventListener('click', async () => {
   }
 });
 retry.addEventListener('click', check);
+portalCheck.addEventListener('click', () => {
+  portalOnly = true;
+  check();
+});
 window.addEventListener('pagehide', () => {
   for (const tabId of owned) void chrome.tabs.remove(tabId).catch(() => {});
 });

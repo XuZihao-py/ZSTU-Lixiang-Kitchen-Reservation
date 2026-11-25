@@ -2,6 +2,34 @@
 .environment-page header { min-height: 60px; padding-block: 12px; }
 .environment-page main { display: grid; gap: 12px; }
 
+#environment-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+#environment-progress li {
+  min-width: 0;
+  padding: 8px 3px 5px;
+  border-top: 4px solid #ddd;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.progress-state { display: block; margin-top: 3px; font-size: 11px; }
+#environment-progress li[data-status="current"] { color: var(--brand); border-color: var(--brand); }
+#environment-progress li[data-status="complete"] { color: #175936; border-color: #52a174; }
+#environment-progress li:is([data-status="waiting"], [data-status="error"]) {
+  color: #8d2924;
+  border-color: #cc615c;
+}
+#environment-progress li[data-status="skipped"] { border-top-style: dashed; }
+@media (max-width: 420px) {
+  #environment-progress { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 8px; }
+}
+
 #environment-result {
   display: grid;
   gap: 6px;
