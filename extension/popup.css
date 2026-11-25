@@ -11,7 +11,9 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { width: min(780px, 100vw); margin: 0 auto; }
+/* 工具栏按内容尺寸创建弹窗，需要明确的初始宽度。 */
+body { width: 780px; margin: 0 auto; }
+.tab-view body { width: min(780px, 100vw); }
 h1, h2, p { margin: 0; }
 h1 { font-size: 20px; line-height: 1.3; font-weight: 700; }
 h2 { font-size: 14px; line-height: 1.4; font-weight: 700; }
@@ -217,8 +219,8 @@ footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 9p
 .primary:hover:not(:disabled) { background: #111; }
 
 @media (max-width: 650px) {
-  header, main { padding-inline: 14px; }
-  .steps { grid-template-columns: minmax(0, 1fr); }
-  .step { min-height: 0; }
-  .step + .step { border-left: 0; border-top: 1px solid var(--line); }
+  .tab-view :is(header, main) { padding-inline: 14px; }
+  .tab-view .steps { grid-template-columns: minmax(0, 1fr); }
+  .tab-view .step { min-height: 0; }
+  .tab-view .step + .step { border-left: 0; border-top: 1px solid var(--line); }
 }

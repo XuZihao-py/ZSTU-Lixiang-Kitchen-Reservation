@@ -29,6 +29,9 @@ const labels = {
 };
 
 for (let count = 1; count <= 10; count++) people.add(new Option(count + ' 人', count));
+chrome.tabs.getCurrent().then(tab => {
+  if (tab) document.documentElement.classList.add('tab-view');
+}).catch(console.warn);
 
 function input() {
   const [start = '', end = ''] = selectedSlot.split('~');
