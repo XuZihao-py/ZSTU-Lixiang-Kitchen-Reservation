@@ -4,7 +4,7 @@
 
 ### ZSTU Lixiang Kitchen Reservation
 
-[![Version](https://img.shields.io/badge/Version-1.3.4_Beta-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta)
+[![Version](https://img.shields.io/badge/Version-1.3.4_Beta_2-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2)
 ![Chrome](https://img.shields.io/badge/Chrome-120%2B-4285F4?logo=googlechrome&logoColor=white)
 ![Manifest](https://img.shields.io/badge/Manifest-V3-brightgreen)
 [![License](https://img.shields.io/badge/License-PolyForm_NC-blue)](./LICENSE)
@@ -61,11 +61,23 @@ A better reservation experience for campus life.
 
 ### 当前发布版本 · Current Release
 
-[![Download](https://img.shields.io/badge/Download-v1.3.4_Beta-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta)
+[![Download](https://img.shields.io/badge/Download-v1.3.4_Beta_2-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2)
 
-[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta) ·
+| 版本信息 | 内容 |
+| --- | --- |
+| 当前发布版本 | v1.3.4 Beta 2 |
+| 扩展内部版本 | 1.3.4 |
+| 发布类型 | Public Beta |
+| 发布日期 | 2026-11-25 |
+
+[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2) ·
 [查看全部版本](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases) ·
 [完整更新日志](./CHANGELOG.md)
+
+> [!NOTE]
+> v1.3.4 Beta 2 主要更新项目文档、隐私权政策、服务条款及开发维护规范。
+>
+> 扩展核心功能与 v1.3.4 Beta 保持一致，已安装 v1.3.4 Beta 的用户无需重新安装扩展。
 
 ### 系统要求 · Requirements
 
@@ -256,7 +268,7 @@ Chrome 可能在该过程中显示浏览器调试提示。
 - `https://sso.zstu.edu.cn/*`
 - `https://zhst.zstu.edu.cn/*`
 
-本项目未申请访问所有网站的权限。
+本项目未申请访问所有网站的 Host Permissions。
 
 Debugger 权限用于当前版本的移动设备环境检测，不用于收集用户密码、浏览记录或其他无关个人信息。
 
@@ -279,14 +291,25 @@ Debugger 权限用于当前版本的移动设备环境检测，不用于收集�
 7. 检查扩展权限及版本号，并重新进行环境检测。
 
 > [!NOTE]
-> v1.3.4 新增环境检测相关浏览器权限。升级后，请留意 Chrome 的权限提示。
+> v1.3.4 新增环境检测相关浏览器权限。从更早版本升级后，请留意 Chrome 的权限提示。
 >
 > 为尽可能保留原有本地数据，建议在原安装目录进行更新，避免不必要的卸载及重新安装。
+
+### 版本编号 · Versioning
+
+本项目采用数字版本号管理 Chrome 扩展，并通过 GitHub Release 标签区分正式版本及测试版本。
+
+Chrome 扩展内部版本号以 `extension/manifest.json` 为准。
+
+GitHub Release 中的 Beta、Beta 2 等后缀用于区分不同的公开测试发布。
+
+仅涉及项目文档的更新可能沿用相同的扩展内部版本号。
 
 ### 版本记录 · Version History
 
 | 版本 | 发布类型 | 更新内容 |
 | --- | --- | --- |
+| [v1.3.4-beta.2](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2) | Beta | 完善项目文档、隐私权政策、服务条款及开发维护规范 |
 | [v1.3.4-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta) | Beta | 新增预约环境检测、校园登录会话恢复、移动设备模式及预约日志 |
 | [v1.2.3-beta.2](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2) | Beta | 优化项目文档、安装指南及发布内容 |
 | [v1.2.3-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta) | Beta | 首次公开测试版本 |
