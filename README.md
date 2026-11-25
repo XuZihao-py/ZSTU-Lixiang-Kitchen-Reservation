@@ -4,7 +4,7 @@
 
 ### ZSTU Lixiang Kitchen Reservation
 
-[![Version](https://img.shields.io/badge/Version-1.2.3_Beta-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta)
+[![Version](https://img.shields.io/badge/Version-1.2.3_Beta_2-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2)
 ![Chrome](https://img.shields.io/badge/Chrome-120%2B-4285F4?logo=googlechrome&logoColor=white)
 ![Manifest](https://img.shields.io/badge/Manifest-V3-brightgreen)
 [![License](https://img.shields.io/badge/License-PolyForm_NC-blue)](./LICENSE)
@@ -48,11 +48,11 @@ A better reservation experience for campus life.
 
 ## 下载与安装 · Download & Installation
 
-### 当前发布版本
+### 当前发布版本 · Current Release
 
-[![Download](https://img.shields.io/badge/Download-v1.2.3_Beta-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta)
+[![Download](https://img.shields.io/badge/Download-v1.2.3_Beta_2-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2)
 
-[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta) ·
+[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2) ·
 [查看全部版本](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases)
 
 ### 系统要求 · Requirements
@@ -161,6 +161,15 @@ A better reservation experience for campus life.
 
 ZIP 安装的用户可以使用新版 `extension` 目录替换旧目录，然后在 `chrome://extensions/` 中点击扩展的重新加载按钮。
 
+### 版本记录
+
+| 版本 | 发布类型 | 更新内容 |
+| --- | --- | --- |
+| [v1.2.3-beta.2](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2) | Beta | 优化项目文档、安装指南及发布内容 |
+| [v1.2.3-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta) | Beta | 首次公开测试版本 |
+
+完整版本记录请参阅 [Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases)。
+
 ### 规则测试
 
 在项目根目录运行：
@@ -239,6 +248,8 @@ tests/site-fixture.html
 <div align="center">
 
 **ZSTU Lixiang Kitchen Reservation**
+
+Designed and developed by [Hsu Tzu-hao](https://github.com/XuZihao-py).
 
 Copyright © 2026 Hsu Tzu-hao.
 
