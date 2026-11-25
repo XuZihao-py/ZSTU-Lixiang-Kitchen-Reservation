@@ -1,4 +1,4 @@
-importScripts('rules.js', 'booking-log.js');
+importScripts('rules.js', 'booking-log.js', 'environment-check.js');
 
 const { BOOKING_URL, ACTIVE, buildPlan, canClaim, canCommit, validDate, localDay, listedSlots } = KitchenPlan;
 const PREPARE = 'kitchen-prepare';
@@ -106,14 +106,13 @@ async function lookupSlots(date) {
     tabId = tab.id;
     await chrome.tabs.update(tabId, { url: BOOKING_URL });
     const deadline = Date.now() + 27_000;
-    let result;
-    while (Date.now() < deadline) {
-      result = await chrome.tabs.sendMessage(tabId, { kind: 'list-slots', date, deadline }, { frameId: 0 })
-        .catch(() => null);
-      if (result) break;
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
-    if (!result?.ok) throw new Error(result?.error || '无法读取预约列表，请先打开预约网页登录，再重试。');
+    const state = await KitchenEnvironment.inspectBooking(tabId, deadline);
+    if (state === 'login') throw new Error('预约登录已失效，请点「环境检测」恢复会话后重试。');
+    if (state === 'offline' || state === 'network') throw new Error('无法连接预约页，请检查网络后重试。');
+    if (state !== 'ready') throw new Error('预约页未加载出共享厨房列表，请点「环境检测」查看。');
+    const result = await chrome.tabs.sendMessage(tabId, { kind: 'list-slots', date, deadline }, { frameId: 0 })
+      .catch(() => null);
+    if (!result?.ok) throw new Error(result?.error || '无法读取预约时段，请点「环境检测」查看。');
     const lookup = { id: crypto.randomUUID(), date, rooms: result.rooms };
     await chrome.storage.session.set({ slotLookup: lookup });
     return { ok: true, lookup };
@@ -153,7 +152,7 @@ async function handle(request, sender) {
       return { ok: true };
     }
     if (request.kind === 'visit') {
-      await chrome.tabs.create({ url: BOOKING_URL, active: true });
+      await chrome.tabs.create({ url: chrome.runtime.getURL('environment.html?open=1'), active: true });
       return { ok: true };
     }
   }

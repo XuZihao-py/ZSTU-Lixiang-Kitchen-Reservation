@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>预约环境检测 · 理享厨房预约助手</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="environment.css">
+  <script src="rules.js" defer></script>
+  <script src="environment-check.js" defer></script>
+  <script src="environment-mobile.js" defer></script>
+  <script src="environment-flow.js" defer></script>
+  <script src="environment.js" defer></script>
+</head>
+<body class="environment-page">
+  <header>
+    <h1>预约环境检测</h1>
+  </header>
+  <main>
+    <ol id="environment-progress" aria-label="检测进度">
+      <li><span>直达预约页</span><span class="progress-state"></span></li>
+      <li><span>恢复校园会话</span><span class="progress-state"></span></li>
+      <li><span>进入共享厨房</span><span class="progress-state"></span></li>
+      <li><span>验证可读时段</span><span class="progress-state"></span></li>
+    </ol>
+    <section id="environment-result" data-level="checking" aria-live="polite" aria-labelledby="environment-heading">
+      <h2 id="environment-heading">正在检测预约环境</h2>
+      <p id="environment-stage"></p>
+      <p id="environment-message">正在检查登录状态和共享厨房列表。</p>
+    </section>
+    <footer>
+      <button type="button" class="secondary" id="show-tab" hidden>查看相关页面</button>
+      <button type="button" class="secondary" id="portal-check" disabled>从门户检测</button>
+      <button type="button" class="primary" id="recheck" disabled>重新检测</button>
+    </footer>
+  </main>
+</body>
+</html>

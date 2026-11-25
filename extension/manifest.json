@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
   "name": "理享厨房预约助手",
-  "version": "1.3.0",
+  "version": "1.3.4",
   "description": "按北京时间预约浙理共享厨房，支持日期、时段、厨房优先顺序和人数。",
   "minimum_chrome_version": "120",
-  "permissions": ["alarms", "storage", "power"],
+  "permissions": ["alarms", "storage", "power", "webNavigation", "debugger"],
+  "host_permissions": ["https://ie.zstu.edu.cn/*", "https://sso.zstu.edu.cn/*", "https://zhst.zstu.edu.cn/*"],
   "action": {
     "default_title": "理享厨房预约助手",
     "default_popup": "popup.html"
@@ -15,7 +16,17 @@
   "content_scripts": [
     {
       "matches": ["https://zhst.zstu.edu.cn/statusweb/h5/universityFrontOfficeProgram/*"],
-      "js": ["rules.js", "booking.js"],
+      "js": ["rules.js", "booking.js", "environment-check.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://ie.zstu.edu.cn/zstu-portal-mobile-web/*", "https://ie.zstu.edu.cn/zstu-apps-mobile-web/*"],
+      "js": ["environment-check.js", "environment-entry.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://zhst.zstu.edu.cn/statusweb/h5/universityFrontOfficeProgram/*"],
+      "js": ["environment-entry.js"],
       "run_at": "document_idle"
     }
   ]
