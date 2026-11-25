@@ -20,7 +20,7 @@ const progressLabels = {
 const phases = {
   'booking-direct': 0, unreachable: 0,
   'portal-unreachable': 1, 'mobile-unavailable': 1, 'portal-home': 1, 'portal-catalog': 1, 'school-auth': 1,
-  'portal-handoff': 2, 'booking-return': 2, 'booking-login': 2, unready: 2,
+  'portal-handoff': 2, 'booking-return': 2, 'booking-auth': 2, 'booking-login': 2, unready: 2,
   'data-read': 3, 'data-empty': 3, ready: 3
 };
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "理享厨房预约助手",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "description": "按北京时间预约浙理共享厨房，支持日期、时段、厨房优先顺序和人数。",
   "minimum_chrome_version": "120",
   "permissions": ["alarms", "storage", "power", "webNavigation", "debugger"],
