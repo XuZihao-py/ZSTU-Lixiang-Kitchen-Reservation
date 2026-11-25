@@ -2,17 +2,73 @@
 
 ZSTU Lixiang Kitchen Reservation
 
-本文件记录理享厨房预约助手的重要功能更新、缺陷修复、兼容性改进及公开发布历史。
+本文件记录理享厨房预约助手的重要功能更新、缺陷修复、兼容性改进、文档维护及公开发布历史。
 
-项目版本采用 `MAJOR.MINOR.PATCH` 形式进行管理。
+## 版本管理 · Versioning
+
+项目采用 `MAJOR.MINOR.PATCH` 形式管理 Chrome 扩展内部版本号。
 
 - MAJOR：重大功能或兼容性变化。
 - MINOR：新增功能。
 - PATCH：缺陷修复及较小的功能改进。
 
-Beta 版本为公开测试版本，可能包含尚未完全稳定的功能。
+GitHub Release 标签用于区分正式发布版本及公开测试版本。
+
+Beta 版本可能包含尚未完全稳定的功能。
+
+仅涉及项目文档、政策说明及维护规范的发布，可能沿用相同的扩展内部版本号。
 
 完整发布记录请参阅 [GitHub Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases)。
+
+---
+
+## [v1.3.4-beta.2] — 2026-11-25
+
+发布类型：Beta 公开测试版
+
+扩展内部版本：1.3.4
+
+### 版本概述 · Overview
+
+本次更新基于 v1.3.4 Beta，主要完善项目文档、隐私权政策、服务条款及开发维护规范。
+
+### 项目文档 · Documentation
+
+- 完善项目主页及功能介绍。
+- 更新预约环境检测及校园登录会话恢复指南。
+- 完善移动设备模式使用说明。
+- 完善预约日志及导出功能说明。
+- 优化软件安装及版本升级指南。
+- 补充浏览器权限及网站访问范围说明。
+
+### 隐私权和条款 · Privacy & Terms
+
+- 完善隐私权政策及个人信息处理说明。
+- 补充 WebNavigation 权限用途说明。
+- 补充 Debugger 权限用途及使用范围说明。
+- 完善校园相关网站访问权限说明。
+- 完善移动设备模拟及临时调试连接说明。
+- 完善预约日志的存储、保留及删除说明。
+- 更新服务条款及用户责任说明。
+- 补充测试版本相关风险提示。
+
+### 项目维护 · Project Maintenance
+
+- 新增 CHANGELOG.md，建立完整的版本更新记录。
+- 完善 AGENTS.md，规范项目开发及维护流程。
+- 完善版本管理及文档同步规范。
+- 完善浏览器权限及隐私保护要求。
+- 完善自动化测试及发布前检查要求。
+
+### 版本说明 · Notes
+
+本次更新仅涉及项目文档、隐私权政策、服务条款及开发维护规范。
+
+扩展核心功能与 v1.3.4 Beta 保持一致。
+
+已安装 v1.3.4 Beta 的用户无需重新安装扩展。
+
+[查看完整变更](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/compare/v1.3.4-beta...v1.3.4-beta.2)
 
 ---
 
@@ -20,11 +76,13 @@ Beta 版本为公开测试版本，可能包含尚未完全稳定的功能。
 
 发布类型：Beta 公开测试版
 
+扩展内部版本：1.3.4
+
 ### 版本概述 · Overview
 
 本次更新引入预约环境检测、校园登录会话恢复、移动设备模式及预约日志功能。
 
-本版本包含 v1.3.0 至 v1.3.4 开发阶段的主要更新。
+本版本包含 v1.3.0 至 v1.3.4 开发阶段的主要功能更新。
 
 ### 新增 · Added
 
@@ -49,7 +107,7 @@ Beta 版本为公开测试版本，可能包含尚未完全稳定的功能。
 - 完善预约失败及异常原因反馈。
 - 优化预约状态记录。
 - 优化相关页面布局及字体显示。
-- 完善项目使用指南及更新说明。
+- 完善新功能相关使用说明。
 
 ### 权限与隐私 · Privacy & Permissions
 
@@ -57,8 +115,7 @@ Beta 版本为公开测试版本，可能包含尚未完全稳定的功能。
 - 新增 Debugger 权限。
 - 新增校园门户及统一身份认证相关网站访问权限。
 - 完善移动设备模式及临时调试连接管理。
-- 更新隐私权政策。
-- 完善服务条款。
+- 补充预约日志及环境检测相关隐私说明。
 - 预约日志保存在用户设备本地。
 - 预约日志不保存账号密码、联系人字段内容或身份验证凭据。
 
@@ -106,11 +163,15 @@ Beta 版本为公开测试版本，可能包含尚未完全稳定的功能。
 - 完善任务失败及异常状态记录。
 - 新增预约日志自动化测试。
 
+[查看完整变更](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/compare/v1.2.3-beta.2...v1.3.4-beta)
+
 ---
 
 ## [v1.2.3-beta.2] — 2026-11-25
 
 发布类型：Beta 公开测试版
+
+扩展内部版本：1.2.3
 
 ### 优化 · Improved
 
@@ -120,15 +181,19 @@ Beta 版本为公开测试版本，可能包含尚未完全稳定的功能。
 - 完善隐私权政策、服务条款及软件许可入口。
 - 新增问题反馈与社区讨论导航。
 
-### 说明 · Notes
+### 版本说明 · Notes
 
 本次更新主要涉及项目文档及发布内容，插件核心功能保持不变。
+
+[查看完整变更](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/compare/v1.2.3-beta...v1.2.3-beta.2)
 
 ---
 
 ## [v1.2.3-beta] — 2026-11-25
 
 发布类型：Beta 公开测试版
+
+扩展内部版本：1.2.3
 
 本项目在 GitHub Releases 上的首次公开测试版本。
 
@@ -159,6 +224,7 @@ Copyright © 2026 Hsu Tzu-hao.
 
 Licensed under the PolyForm Noncommercial License 1.0.0.
 
+[v1.3.4-beta.2]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2
 [v1.3.4-beta]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta
 [v1.2.3-beta.2]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2
 [v1.2.3-beta]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta
