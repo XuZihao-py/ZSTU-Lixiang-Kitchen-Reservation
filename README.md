@@ -29,3 +29,7 @@
 - [仓库 main 分支](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/tree/main)是安装源。更新后在 `chrome://extensions` 点击扩展的重新加载按钮。ZIP 安装的用户用新版 `extension` 目录替换旧目录后重新加载。
 - `node tests/rules.cjs` 验证放号时间、时段、容量、优先级和单次提交门槛。
 - 用 Chrome 打开 `tests/site-fixture.html` 可离线演练跨月选日、顶栏日期与日历不一致、表单日期不一致、周中和周末时段、约满、须知条件、提交锁和回执。页面显示 `PASS` 表示通过。
+
+## 法律声明与相关政策
+
+- [服务条款（Terms of Service）](./TERMS.md)
