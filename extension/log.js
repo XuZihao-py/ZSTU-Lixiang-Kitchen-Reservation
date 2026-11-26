@@ -1,11 +1,16 @@
 if (window.parent !== window) document.documentElement.classList.add('workbench-embedded');
 
-const { describeTask, describeKitchens, report, stamp } = KitchenLog;
+const { describeTask, describeKitchens, report, diagnosticReport, stamp } = KitchenLog;
 const byId = id => document.getElementById(id);
 const selectTask = byId('log-task');
 const timeline = byId('log-events');
 const empty = byId('empty-log');
 const feedback = byId('log-feedback');
+const exportOptions = byId('export-options');
+const exportTasks = byId('export-tasks');
+const exportAll = byId('export-all');
+const confirmExport = byId('confirm-export');
+let exportIds = new Set();
 let tasks = [];
 let updated = false;
 const selected = () => tasks.find(task => task.id === selectTask.value);
@@ -48,6 +53,7 @@ function render(entries = []) {
     new Option(describeTask(task) + ' · 记录于 ' + stamp(task.loggedAt).slice(0, 19), task.id)));
   if (!followingLatest && tasks.some(task => task.id === previous)) selectTask.value = previous;
   renderTask();
+  if (!exportOptions.hidden) renderExportTasks();
 }
 
 selectTask.addEventListener('change', () => {
@@ -64,15 +70,67 @@ byId('copy-log').addEventListener('click', async () => {
     showFeedback('无法访问剪贴板，可下载 TXT。');
   }
 });
+function syncExportSelection() {
+  const count = tasks.filter(task => exportIds.has(task.id)).length;
+  exportAll.checked = tasks.length > 0 && count === tasks.length;
+  exportAll.indeterminate = count > 0 && count < tasks.length;
+  exportAll.disabled = tasks.length === 0;
+  confirmExport.disabled = count === 0;
+  confirmExport.textContent = '导出所选（' + count + '）';
+}
+
+function renderExportTasks() {
+  exportTasks.replaceChildren(...tasks.map(task => {
+    const label = document.createElement('label');
+    label.className = 'export-choice';
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.value = task.id;
+    box.checked = exportIds.has(task.id);
+    label.append(box, describeTask(task) + ' · 记录于 ' + stamp(task.loggedAt));
+    return label;
+  }));
+  syncExportSelection();
+}
+
 byId('download-log').addEventListener('click', () => {
-  const task = selected();
-  if (!task) return;
-  const url = URL.createObjectURL(new Blob(['\uFEFF', report(task)], { type: 'text/plain;charset=utf-8' }));
+  exportIds = new Set(selected() ? [selected().id] : []);
+  exportOptions.hidden = false;
+  renderExportTasks();
+  exportAll.focus();
+});
+byId('cancel-export').addEventListener('click', () => {
+  exportOptions.hidden = true;
+  byId('download-log').focus();
+});
+exportTasks.addEventListener('change', event => {
+  const { checked, value } = event.target;
+  if (checked) exportIds.add(value);
+  else exportIds.delete(value);
+  syncExportSelection();
+});
+exportAll.addEventListener('change', () => {
+  exportIds = new Set(exportAll.checked ? tasks.map(task => task.id) : []);
+  renderExportTasks();
+});
+confirmExport.addEventListener('click', () => {
+  const matched = tasks.filter(task => exportIds.has(task.id));
+  if (!matched.length) return;
+  const metadata = {
+    extensionVersion: chrome.runtime.getManifest().version,
+    chromeVersion: /Chrome\/([\d.]+)/.exec(navigator.userAgent)?.[1],
+    platform: navigator.userAgentData?.platform
+  };
+  const url = URL.createObjectURL(new Blob(['\uFEFF', diagnosticReport(matched, metadata)],
+    { type: 'text/plain;charset=utf-8' }));
   const link = document.createElement('a');
   link.href = url;
-  link.download = '理享厨房预约日志-' + task.date + '-' + task.start.replace(':', '') + '.txt';
+  link.download = '理享厨房诊断日志-' + KitchenPlan.localDay(Date.now()) + '.txt';
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  exportOptions.hidden = true;
+  byId('download-log').focus();
+  showFeedback('已导出 ' + matched.length + ' 条任务记录。');
 });
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local' || !changes.bookingHistory) return;

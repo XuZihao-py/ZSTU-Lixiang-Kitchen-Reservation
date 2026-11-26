@@ -26,6 +26,16 @@
         <button id="copy-log" class="secondary" type="button">复制日志</button>
         <button id="download-log" class="primary" type="button">下载 TXT</button>
       </div>
+      <section id="export-options" class="log-summary" aria-labelledby="export-title" hidden>
+        <h2 id="export-title">选择要导出的任务</h2>
+        <p class="hint">TXT 包含调试用时间戳、事件和错误代码。旧记录按原有字段导出。</p>
+        <label class="export-choice"><input id="export-all" type="checkbox"> 全选</label>
+        <div id="export-tasks"></div>
+        <footer>
+          <button id="cancel-export" class="secondary" type="button">取消</button>
+          <button id="confirm-export" class="primary" type="button">导出所选</button>
+        </footer>
+      </section>
       <p id="log-feedback" class="hint" role="status" hidden></p>
 
       <div class="log-summary">

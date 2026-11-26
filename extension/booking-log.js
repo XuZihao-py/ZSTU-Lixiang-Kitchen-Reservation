@@ -61,16 +61,22 @@
     const template = events[kind];
     if (template.includes('{厨房}') && !room) return history;
     const message = explanations[kind + ':' + reason] || template.replace('{厨房}', room);
-    const entry = { at, message };
+    const safeReason = Object.hasOwn(explanations, kind + ':' + reason) ? reason : undefined;
+    const entry = { at, message, event: kind, ...(room ? { kitchen } : {}), ...(safeReason ? { reason: safeReason } : {}) };
+    const timing = {
+      ...(Number.isFinite(plan.prepareAt) ? { prepareAt: plan.prepareAt } : {}),
+      ...(Number.isFinite(plan.deadline) ? { deadline: plan.deadline } : {}),
+      ...(Number.isFinite(plan.commitAt) ? { commitAt: plan.commitAt } : {})
+    };
     const index = history.findIndex(task => task.id === plan.id);
     if (index < 0) {
       const { id, date, start, end, people, startAt } = plan;
       const kitchens = plan.kitchens.filter(id => kitchenNames.has(id));
-      return [{ id, date, start, end, people, startAt, kitchens, loggedAt: at, events: [entry] }, ...history].slice(0, 12);
+      return [{ id, date, start, end, people, startAt, kitchens, ...timing, loggedAt: at, events: [entry] }, ...history].slice(0, 12);
     }
     const updated = history.slice();
     const task = history[index];
-    updated[index] = { ...task, events: [...task.events.slice(-59), entry] };
+    updated[index] = { ...task, ...timing, events: [...task.events.slice(-59), entry] };
     return updated;
   }
 
@@ -86,7 +92,33 @@
     ].join('\r\n');
   }
 
-  const api = { addEvent, describeTask, describeKitchens, report, stamp };
+  function diagnosticReport(tasks, { extensionVersion, chromeVersion, platform, exportedAt = Date.now() }) {
+    const timestamp = value => Number.isFinite(value) ?
+      { epochMs: value, utc: new Date(value).toISOString(), beijing: stamp(value) } : undefined;
+    return JSON.stringify({
+      schema: 'lixiang.booking-diagnostics.v1',
+      exportedAt: timestamp(exportedAt),
+      extensionVersion,
+      chromeVersion,
+      platform,
+      taskCount: tasks.length,
+      tasks: tasks.map(task => ({
+        id: task.id, date: task.date, start: task.start, end: task.end, people: task.people,
+        kitchens: task.kitchens, recordedAt: timestamp(task.loggedAt), prepareAt: timestamp(task.prepareAt),
+        startAt: timestamp(task.startAt), deadline: timestamp(task.deadline), commitAt: timestamp(task.commitAt),
+        events: task.events.map(entry => ({
+          at: timestamp(entry.at),
+          sincePlanStartMs: Number.isFinite(task.startAt) ? entry.at - task.startAt : undefined,
+          event: entry.event ?? 'legacy',
+          reason: entry.reason,
+          kitchen: entry.kitchen,
+          message: entry.message
+        }))
+      }))
+    }, null, 2) + '\r\n';
+  }
+
+  const api = { addEvent, describeTask, describeKitchens, report, diagnosticReport, stamp };
   globalThis.KitchenLog = api;
   if (typeof module !== 'undefined') module.exports = api;
 })();

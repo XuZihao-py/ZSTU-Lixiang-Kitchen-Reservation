@@ -40,3 +40,9 @@
 .quick-view #quick-plan { margin-bottom: 12px; }
 .quick-view footer { justify-content: flex-end; }
 .quick-view #quick-error { margin-top: 8px; color: #8d2924; }
+
+.runtime-notice { display: grid; gap: 12px; }
+.runtime-notice p { color: var(--muted); }
+.notice-choice { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.runtime-notice button { justify-self: end; }
+.quick-view footer #show-notice { margin-right: auto; }
