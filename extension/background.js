@@ -173,10 +173,12 @@ async function lookupSlots(date) {
   if (!validDate(date) || date <= localDay(Date.now())) throw new Error('请选择明天或之后的日期。');
   if (lookingUp) throw new Error('已有时段查询，请稍后重试。');
   lookingUp = true;
+  const pageSession = KitchenEnvironmentMobile.createMobileSession(chrome.debugger, navigator.userAgent);
   let tabId;
   try {
     const tab = await chrome.tabs.create({ url: 'about:blank', active: false });
     tabId = tab.id;
+    await pageSession.keepVisible(tabId);
     await chrome.tabs.update(tabId, { url: BOOKING_URL });
     const deadline = Date.now() + 27_000;
     const state = await KitchenEnvironment.inspectBooking(tabId, deadline);
@@ -190,6 +192,7 @@ async function lookupSlots(date) {
     await chrome.storage.session.set({ slotLookup: lookup });
     return { ok: true, lookup };
   } finally {
+    await pageSession.close();
     if (tabId != null) await chrome.tabs.remove(tabId).catch(() => {});
     lookingUp = false;
   }

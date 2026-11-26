@@ -4,7 +4,7 @@
 
 ### ZSTU Lixiang Kitchen Reservation
 
-[![Version](https://img.shields.io/badge/Version-1.3.7_Beta-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta)
+[![Version](https://img.shields.io/badge/Version-1.3.8_Beta-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta)
 ![Chrome](https://img.shields.io/badge/Chrome-120%2B-4285F4?logo=googlechrome&logoColor=white)
 ![Manifest](https://img.shields.io/badge/Manifest-V3-brightgreen)
 [![License](https://img.shields.io/badge/License-PolyForm_NC-blue)](./LICENSE)
@@ -61,21 +61,21 @@ A better reservation experience for campus life.
 
 ### 当前发布版本 · Current Release
 
-[![Download](https://img.shields.io/badge/Download-v1.3.7_Beta-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta)
+[![Download](https://img.shields.io/badge/Download-v1.3.8_Beta-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta)
 
 | 版本信息 | 内容 |
 | --- | --- |
-| 当前发布版本 | v1.3.7 Beta |
-| 扩展内部版本 | 1.3.7 |
+| 当前发布版本 | v1.3.8 Beta |
+| 扩展内部版本 | 1.3.8 |
 | 发布类型 | Public Beta |
-| 发布日期 | 2026-11-25 |
+| 发布日期 | 2026-11-26 |
 
-[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta) ·
+[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta) ·
 [查看全部版本](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases) ·
 [完整更新日志](./CHANGELOG.md)
 
 > [!NOTE]
-> v1.3.7 Beta 新增主页环境状态和预约前自动检测，支持检测通过后返回预约助手，并改进校园会话恢复。
+> v1.3.8 Beta 修复了 Chrome 后台标签页加载缓慢导致的环境检测和预约时段查询超时。
 >
 > 从旧版升级时，请更新原安装目录并在 Chrome 中重新加载扩展。
 
@@ -148,9 +148,9 @@ A better reservation experience for campus life.
 
 手机模式用于设置页面的移动设备标识、屏幕尺寸及触控交互，以适配校园移动端门户。
 
-Chrome 可能在该过程中显示浏览器调试提示。
+环境检测和时段查询会在临时预约标签页启用 Chrome 的焦点模拟，让后台页面继续渲染和加载列表。Chrome 可能在这期间显示浏览器调试提示。
 
-检测结束时，扩展会尝试结束相关调试会话并退出手机模式。
+检测或查询结束时，扩展会解除临时页面的调试连接。
 
 如需单独检查校园门户入口，可在环境检测页面选择「从门户检测」。
 
@@ -246,7 +246,7 @@ Chrome 可能在该过程中显示浏览器调试提示。
 - 时钟误差、设备休眠、网络环境及服务器负载可能影响预约。
 - 校园登录会话可能在任务执行前失效。
 - 环境检测正常不代表未来预约一定成功。
-- 浏览器调试权限不可用或与开发者工具冲突时，移动设备模式可能无法正常启用。
+- 浏览器调试权限不可用或与开发者工具冲突时，临时预约页的后台渲染或移动设备模式可能无法启用。
 - 学校门户或预约页面发生变化时，部分功能可能失效。
 - 出现额外身份验证或付款要求时，需要用户人工处理。
 - 本项目不保证预约成功，不提供额外预约资格。
@@ -261,7 +261,7 @@ Chrome 可能在该过程中显示浏览器调试提示。
 | Storage | 保存预约配置、任务状态及预约日志 |
 | Power | 在预约任务执行期间请求系统保持唤醒 |
 | WebNavigation | 识别环境检测相关校园页面的导航及跳转 |
-| Debugger | 为环境检测相关标签页启用移动设备模式及触控模拟 |
+| Debugger | 为临时页面启用后台渲染、移动设备模式及触控模拟 |
 | Host Permissions | 访问实现校园门户、统一认证及共享厨房功能所需的指定学校网站 |
 
 当前版本声明的学校网站访问范围包括：
@@ -272,7 +272,7 @@ Chrome 可能在该过程中显示浏览器调试提示。
 
 本项目未申请访问所有网站的 Host Permissions。
 
-Debugger 权限用于当前版本的移动设备环境检测，不用于收集用户密码、浏览记录或其他无关个人信息。
+Debugger 权限用于检测或查询时的后台渲染，以及校园门户的移动设备模式，不用于收集用户密码、浏览记录或其他无关个人信息。
 
 有关信息处理及浏览器权限的详细说明，请参阅 [隐私权政策](./PRIVACY.md)。
 
@@ -311,6 +311,7 @@ GitHub Release 中的 Beta、Beta 2 等后缀用于区分不同的公开测试�
 
 | 版本 | 发布类型 | 更新内容 |
 | --- | --- | --- |
+| [v1.3.8-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta) | Beta | 修复后台环境检测和时段查询超时 |
 | [v1.3.7-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta) | Beta | 主页环境状态、自动检测、检测后返回和校园会话恢复改进 |
 | [v1.3.4-beta.2](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2) | Beta | 完善项目文档、隐私权政策、服务条款及开发维护规范 |
 | [v1.3.4-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta) | Beta | 新增预约环境检测、校园登录会话恢复、移动设备模式及预约日志 |

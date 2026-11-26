@@ -5,6 +5,7 @@ async function run() {
   const calls = [];
   let listener;
   let failTouch = false;
+  let failFocus = false;
   const api = {
     onDetach: {
       addListener(callback) { listener = callback; },
@@ -14,6 +15,7 @@ async function run() {
     async sendCommand(target, command, params) {
       calls.push([command, target, params]);
       if (failTouch && command === 'Emulation.setTouchEmulationEnabled') throw Error('测试失败');
+      if (failFocus && command === 'Emulation.setFocusEmulationEnabled') throw Error('测试失败');
     },
     async detach(target) { calls.push(['detach', target]); }
   };
@@ -35,7 +37,18 @@ async function run() {
   assert.equal(await session.enable(13), false);
   assert.deepEqual(calls.at(-1), ['detach', { tabId: 13 }]);
   failTouch = false;
+  const start = calls.length;
+  assert.equal(await session.keepVisible(14), true);
+  assert.equal(await session.keepVisible(14), true);
   assert.equal(await session.enable(14), true);
+  assert.deepEqual(calls.slice(start).map(([command]) => command), [
+    'attach', 'Emulation.setFocusEmulationEnabled', 'Emulation.setUserAgentOverride',
+    'Emulation.setDeviceMetricsOverride', 'Emulation.setTouchEmulationEnabled'
+  ]);
+  assert.deepEqual(calls[start + 1][2], { enabled: true });
+  failFocus = true;
+  assert.equal(await session.keepVisible(15), false);
+  assert.deepEqual(calls.at(-1), ['detach', { tabId: 15 }]);
   await session.close();
   assert.deepEqual(calls.at(-1), ['detach', { tabId: 14 }]);
   assert.equal(listener, undefined);

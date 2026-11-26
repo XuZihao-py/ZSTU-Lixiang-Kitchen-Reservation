@@ -40,6 +40,7 @@
       const kind = pageKind(address(tab));
       const route = address(tab);
       if (kind && !await mobile.enable(currentId)) return { code: 'mobile-unavailable' };
+      if (['portal', 'booking'].includes(kind) && !await mobile.keepVisible(currentId)) await reveal(currentId);
 
       if (kind === 'sso') {
         authAt ??= Date.now();
@@ -72,7 +73,6 @@
       }
 
       if (kind === 'booking') {
-        if (/roomReserve\/Index/i.test(route)) await reveal(currentId);
         const snapshot = await signal(currentId, 'booking-environment');
         if (snapshot?.state === 'ready') return { code: 'ready', tabId: currentId };
         if (snapshot?.state === 'network') return { code: 'network', tabId: currentId };
@@ -176,6 +176,7 @@
         result = await throughPortal();
       } else {
         publish('checking', 'booking-direct', tab.id);
+        if (!await mobile.keepVisible(tab.id)) await reveal(tab.id);
         await chrome.tabs.update(tab.id, { url: BOOKING_URL });
         const code = await inspectBooking(tab.id, Date.now() + 14_000);
         result = await verifyIfReady({ code, tabId: tab.id });
@@ -208,7 +209,9 @@
   async function checkAutomatically(publish) {
     if (navigator.onLine === false) return { code: 'offline' };
     const tab = await chrome.tabs.create({ url: 'about:blank', active: false });
+    const pageSession = createMobileSession(chrome.debugger, navigator.userAgent);
     try {
+      await pageSession.keepVisible(tab.id);
       await chrome.tabs.update(tab.id, { url: BOOKING_URL });
       const code = await inspectBooking(tab.id, Date.now() + 14_000);
       if (code === 'login') return { code: 'school-auth' };
@@ -217,6 +220,7 @@
       const report = await verifyData(tab.id);
       return report.code === 'booking-login' ? { code: 'school-auth' } : report;
     } finally {
+      await pageSession.close();
       await chrome.tabs.remove(tab.id).catch(() => {});
     }
   }
