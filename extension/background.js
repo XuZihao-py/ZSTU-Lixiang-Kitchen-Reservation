@@ -109,13 +109,6 @@ async function saveEvent(plan, kind, details = {}, savePlan = false) {
 async function update(plan, changes, event = changes.state, details = {}) {
   const next = { ...plan, ...changes, updatedAt: Date.now() };
   await saveEvent(next, event, { ...details, at: next.updatedAt }, true);
-  const badge = {
-    scheduled: '待命', preparing: '准备', waiting: '待命', running: '进行',
-    submitting: '确认', success: '成功', manual: '查看', uncertain: '核对',
-    unavailable: '已满', failed: '失败', expired: '超时'
-  }[next.state] || '';
-  await chrome.action.setBadgeBackgroundColor({ color: next.state === 'success' ? '#19704d' : '#395c51' });
-  await chrome.action.setBadgeText({ text: badge });
   return next;
 }
 
@@ -327,7 +320,10 @@ chrome.runtime.onStartup.addListener(() => enqueue(async () => {
   }
   await reconcile();
 }));
-chrome.runtime.onInstalled.addListener(() => enqueue(reconcile));
+chrome.runtime.onInstalled.addListener(() => enqueue(async () => {
+  await chrome.action.setBadgeText({ text: '' });
+  await reconcile();
+}));
 chrome.tabs.onRemoved.addListener(tabId => enqueue(async () => {
   const { environmentRun } = await chrome.storage.session.get('environmentRun');
   if (environmentRun?.tabId === tabId) {

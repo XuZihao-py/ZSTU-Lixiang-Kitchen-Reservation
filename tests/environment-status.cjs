@@ -18,4 +18,22 @@ assert.equal(viewStatus(result, { level: 'checking', code: 'data-read', startedA
 assert.equal(viewStatus(null, { level: 'waiting', code: 'school-auth', startedAt: now }, now).level, 'error');
 assert.equal(viewStatus(result, { level: 'checking', startedAt: now }, now + 5 * 60_000).level, 'ready');
 assert.equal(viewStatus({ level: 'error', code: 'closed', checkedAt: now }, null, now + 6 * hour).level, 'error');
-console.log('主页环境状态测试通过。');
+for (const code of ['school-auth', 'booking-login', 'booking-auth']) {
+  assert.match(viewStatus({ level: 'error', code, checkedAt: now }, null, now).detail, /从门户检测/);
+}
+assert.match(viewStatus(null, { level: 'waiting', code: 'school-auth', startedAt: now }, now).detail, /从门户检测/);
+assert.doesNotMatch(viewStatus({ level: 'error', code: 'network', checkedAt: now }, null, now).detail, /从门户检测/);
+
+const { planStatus } = require('../extension/summary.js');
+for (const [states, level, label] of [
+  [[undefined, 'scheduled', 'preparing', 'waiting', 'cancelled'], 'pending', '待预约'],
+  [['running', 'submitting', 'uncertain'], 'running', '预约中'],
+  [['success'], 'success', '预约成功'],
+  [['unavailable', 'failed', 'expired', 'manual'], 'failed', '预约失败']
+]) {
+  for (const state of states) assert.deepEqual(planStatus({ state }), { level, label });
+}
+assert.deepEqual(planStatus(), { level: 'pending', label: '待预约' });
+assert.deepEqual(planStatus({ state: 'manual', commitAt: now }), { level: 'running', label: '预约中' });
+
+console.log('主页检测提示和预约状态测试通过。');

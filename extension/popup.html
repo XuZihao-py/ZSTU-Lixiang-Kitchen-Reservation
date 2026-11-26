@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>理享厨房预约助手</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/kitchen-32.png">
   <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="workbench.css">
   <script src="rules.js" defer></script>
@@ -15,7 +16,7 @@
 <body>
   <header>
     <h1>理享厨房预约助手</h1>
-    <span id="state" class="state">未设置</span>
+    <span id="state" class="state" data-level="pending" aria-live="polite">待预约</span>
   </header>
 
   <nav class="workbench-nav" aria-label="预约工作台">

@@ -8,7 +8,12 @@
   "host_permissions": ["https://ie.zstu.edu.cn/*", "https://sso.zstu.edu.cn/*", "https://zhst.zstu.edu.cn/*"],
   "action": {
     "default_title": "理享厨房预约助手",
-    "default_popup": "quick.html"
+    "default_popup": "quick.html",
+    "default_icon": {
+      "16": "icons/kitchen-16.png",
+      "24": "icons/kitchen-24.png",
+      "32": "icons/kitchen-32.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
