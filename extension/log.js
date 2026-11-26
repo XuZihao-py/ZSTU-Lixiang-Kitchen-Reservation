@@ -1,3 +1,5 @@
+if (window.parent !== window) document.documentElement.classList.add('workbench-embedded');
+
 const { describeTask, describeKitchens, report, stamp } = KitchenLog;
 const byId = id => document.getElementById(id);
 const selectTask = byId('log-task');

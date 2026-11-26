@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN" class="quick-view">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>理享厨房预约助手</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="workbench.css">
+  <script src="rules.js" defer></script>
+  <script src="environment-status.js" defer></script>
+  <script src="summary.js" defer></script>
+  <script src="quick.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>理享厨房预约助手</h1>
+    <span id="state" class="state">未设置</span>
+  </header>
+  <main>
+    <p id="quick-plan" class="hint" role="status">暂无预约任务。</p>
+    <section class="environment-summary" id="environment-summary" data-level="unknown" aria-labelledby="home-environment-title">
+      <div role="status">
+        <h2 id="home-environment-title">待环境检测</h2>
+        <p class="hint" id="home-environment-detail"></p>
+      </div>
+    </section>
+    <footer>
+      <button type="button" class="secondary" data-view="environment">查看检测</button>
+      <button type="button" class="primary" data-view="">打开工作台</button>
+    </footer>
+    <p id="quick-error" role="alert" hidden></p>
+  </main>
+</body>
+</html>

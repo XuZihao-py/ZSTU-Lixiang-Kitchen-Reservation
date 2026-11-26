@@ -1,13 +1,16 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="tab-view">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>理享厨房预约助手</title>
   <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="workbench.css">
   <script src="rules.js" defer></script>
   <script src="environment-status.js" defer></script>
+  <script src="summary.js" defer></script>
   <script src="popup.js" defer></script>
+  <script src="workbench.js" defer></script>
 </head>
 <body>
   <header>
@@ -15,13 +18,17 @@
     <span id="state" class="state">未设置</span>
   </header>
 
-  <main>
+  <nav class="workbench-nav" aria-label="预约工作台">
+    <a href="#reservation" data-view="reservation" aria-current="page">预约设置</a>
+    <a href="#environment" data-view="environment">环境检测</a>
+    <a href="#logs" data-view="logs">预约日志</a>
+  </nav>
+  <main id="workbench-reservation">
     <section class="environment-summary" id="environment-summary" data-level="unknown" aria-labelledby="home-environment-title">
       <div role="status">
         <h2 id="home-environment-title">待环境检测</h2>
         <p class="hint" id="home-environment-detail"></p>
       </div>
-      <a class="footer-link" href="environment.html" target="_blank" rel="noopener">环境检测</a>
     </section>
     <form id="plan-form">
       <fieldset id="settings" disabled>
@@ -88,12 +95,13 @@
 
       <p id="error" role="alert" hidden></p>
       <footer>
-        <button id="visit" type="button" class="secondary" disabled>打开预约网页</button>
-        <a class="footer-link log-link" href="log.html" target="_blank" rel="noopener">预约日志</a>
+        <button id="visit" type="button" class="secondary" disabled>打开学校预约页</button>
         <button id="begin" type="submit" class="primary" disabled>开始预约</button>
         <button id="cancel" type="button" class="secondary" hidden>停止任务</button>
       </footer>
     </form>
   </main>
+  <iframe id="workbench-environment" class="workbench-frame" title="环境检测" hidden></iframe>
+  <iframe id="workbench-logs" class="workbench-frame" title="预约日志" hidden></iframe>
 </body>
 </html>

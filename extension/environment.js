@@ -7,7 +7,8 @@ const portalCheck = byId('portal-check');
 const returnHome = byId('return-home');
 const milestones = [...document.querySelectorAll('#environment-progress li')];
 const params = new URLSearchParams(location.search);
-const shouldOpen = params.get('open') === '1';
+let shouldOpen = params.get('open') === '1';
+if (window.parent !== window) document.documentElement.classList.add('workbench-embedded');
 const owned = new Set();
 let relatedTab;
 let portalOnly = params.get('portal') === '1';
@@ -93,6 +94,7 @@ async function check() {
   show(code === 'ready' ? 'ready' : 'error', code, tabId, report);
   if (code === 'ready') {
     if (saved?.ok) {
+      shouldOpen = false;
       returnHome.hidden = false;
       retry.className = 'secondary';
     } else {
