@@ -37,5 +37,46 @@
     });
   }
 
+  const notice = document.getElementById('runtime-notice');
+  const overview = document.getElementById('quick-overview');
+  const dismiss = document.getElementById('dismiss-notice');
+  const confirm = document.getElementById('confirm-notice');
+  const reopen = document.getElementById('show-notice');
+
+  async function readNoticePreference() {
+    const { skipRuntimeNotice } = await chrome.storage.local.get('skipRuntimeNotice');
+    dismiss.checked = skipRuntimeNotice === true;
+  }
+
+  function showNotice() {
+    overview.hidden = true;
+    notice.hidden = false;
+    confirm.focus();
+  }
+
+  reopen.addEventListener('click', showNotice);
+  function showOverview() {
+    notice.hidden = true;
+    overview.hidden = false;
+  }
+
+  confirm.addEventListener('click', async () => {
+    confirm.disabled = true;
+    try {
+      await chrome.storage.local.set({ skipRuntimeNotice: dismiss.checked });
+    } catch {
+      feedback.textContent = '未能保存提醒设置，本次仍可继续。';
+      feedback.hidden = false;
+    } finally {
+      confirm.disabled = false;
+    }
+    showOverview();
+    reopen.focus();
+  });
+  readNoticePreference().then(() => {
+    if (dismiss.checked) showOverview();
+    else showNotice();
+  }).catch(showNotice);
+
   mountEnvironmentSummary();
 })();

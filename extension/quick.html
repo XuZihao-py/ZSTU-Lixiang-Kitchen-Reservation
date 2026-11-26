@@ -17,18 +17,28 @@
     <span id="state" class="state" data-level="pending" aria-live="polite">待预约</span>
   </header>
   <main>
-    <p id="quick-plan" class="hint" role="status">暂无预约任务。</p>
-    <section class="environment-summary" id="environment-summary" data-level="unknown" aria-labelledby="home-environment-title">
-      <div role="status">
-        <h2 id="home-environment-title">待环境检测</h2>
-        <p class="hint" id="home-environment-detail"></p>
-      </div>
+    <section id="runtime-notice" class="runtime-notice" aria-labelledby="notice-title" hidden>
+      <h2 id="notice-title">预约前请确认设备会持续运行</h2>
+      <p>预约助手是本地 Chrome 扩展，任务由这台电脑执行。保存任务后，从预约准备开始到收到结果，请保持电脑开机、Chrome 打开且网络正常。</p>
+      <p>如果今晚设置、明早执行，请确保电脑在预约开始前保持开机。提前检查电源计划、自动关机、睡眠和休眠设置，确保它们不会中断预约。</p>
+      <label class="notice-choice"><input id="dismiss-notice" type="checkbox"> 以后不再提醒</label>
+      <button id="confirm-notice" class="primary" type="button">知道了</button>
     </section>
-    <footer>
-      <button type="button" class="secondary" data-view="environment">查看检测</button>
-      <button type="button" class="primary" data-view="">打开工作台</button>
-    </footer>
-    <p id="quick-error" role="alert" hidden></p>
+    <section id="quick-overview" hidden>
+      <p id="quick-plan" class="hint" role="status">暂无预约任务。</p>
+      <section class="environment-summary" id="environment-summary" data-level="unknown" aria-labelledby="home-environment-title">
+        <div role="status">
+          <h2 id="home-environment-title">待环境检测</h2>
+          <p class="hint" id="home-environment-detail"></p>
+        </div>
+      </section>
+      <footer>
+        <button id="show-notice" type="button" class="text-button">运行提示</button>
+        <button type="button" class="secondary" data-view="environment">查看检测</button>
+        <button type="button" class="primary" data-view="">打开工作台</button>
+      </footer>
+      <p id="quick-error" role="alert" hidden></p>
+    </section>
   </main>
 </body>
 </html>

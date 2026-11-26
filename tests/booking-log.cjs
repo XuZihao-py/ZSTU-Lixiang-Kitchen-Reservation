@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 require('../extension/rules.js');
-const { addEvent, report, stamp } = require('../extension/booking-log.js');
+const { addEvent, diagnosticReport, report, stamp } = require('../extension/booking-log.js');
 
 const at = Date.parse('2026-11-25T23:30:00.125+08:00');
 const plan = {
@@ -21,6 +21,15 @@ assert.match(output, /2026-11-30.*16:00.*18:30.*8 人/);
 assert.match(output, /下沙 XS-03.*临平 LP-01/);
 assert.match(output, /正在尝试.*继续.*付款页/s);
 assert.doesNotMatch(JSON.stringify(history), /测试联系人|123456/);
+const detailed = JSON.parse(diagnosticReport([history[0], {
+  ...history[0], id: 'legacy', events: [{ at, message: '旧版事件' }]
+}], { extensionVersion: '1.4.1', chromeVersion: '151', platform: 'Windows', exportedAt: at }));
+assert.equal(detailed.taskCount, 2);
+assert.equal(detailed.tasks[0].events[1].kitchen, 'XS-03');
+assert.equal(detailed.tasks[0].events[3].reason, 'payment');
+assert.equal(detailed.tasks[0].events[0].sincePlanStartMs, -1000);
+assert.equal(detailed.tasks[1].events[0].event, 'legacy');
+assert.doesNotMatch(JSON.stringify(detailed), /测试联系人|123456/);
 assert.strictEqual(addEvent(history, plan, 'unknown', { at }), history);
 assert.strictEqual(addEvent(history, plan, 'attempt', { at, kitchen: 'LP-02' }), history);
 

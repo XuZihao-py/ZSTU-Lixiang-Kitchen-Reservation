@@ -45,3 +45,7 @@
   .log-controls :is(label, select) { grid-column: 1 / -1; }
   #log-events li { grid-template-columns: 1fr; gap: 1px; }
 }
+
+.export-choice { display: flex; gap: 8px; align-items: baseline; padding: 4px 0; }
+#export-tasks { display: grid; max-height: 200px; overflow-y: auto; }
+#export-options footer { justify-content: flex-end; }
