@@ -4,11 +4,11 @@
 
 ### ZSTU Lixiang Kitchen Reservation
 
-[![Version](https://img.shields.io/badge/Version-1.3.8_Beta-orange)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta)
+[![Version](https://img.shields.io/badge/Version-1.4.0-brightgreen)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0)
 ![Chrome](https://img.shields.io/badge/Chrome-120%2B-4285F4?logo=googlechrome&logoColor=white)
 ![Manifest](https://img.shields.io/badge/Manifest-V3-brightgreen)
 [![License](https://img.shields.io/badge/License-PolyForm_NC-blue)](./LICENSE)
-![Status](https://img.shields.io/badge/Status-Public_Beta-orange)
+![Status](https://img.shields.io/badge/Status-Stable-brightgreen)
 
 **让校园厨房预约更加便捷。**
 
@@ -24,8 +24,6 @@ A better reservation experience for campus life.
 </div>
 
 > [!WARNING]
-> 当前项目处于 Beta 公开测试阶段，部分功能仍在测试与优化中，可能存在未知问题或兼容性缺陷。
->
 > 本项目为独立开发的非官方浏览器扩展，仅供学习与技术研究使用。请遵守学校及官方预约平台的相关管理规定，合理使用校园公共资源。
 
 ## 关于项目 · About
@@ -61,21 +59,21 @@ A better reservation experience for campus life.
 
 ### 当前发布版本 · Current Release
 
-[![Download](https://img.shields.io/badge/Download-v1.3.8_Beta-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta)
+[![Download](https://img.shields.io/badge/Download-v1.4.0-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0)
 
 | 版本信息 | 内容 |
 | --- | --- |
-| 当前发布版本 | v1.3.8 Beta |
-| 扩展内部版本 | 1.3.8 |
-| 发布类型 | Public Beta |
+| 当前发布版本 | v1.4.0 |
+| 扩展内部版本 | 1.4.0 |
+| 发布类型 | 正式版 |
 | 发布日期 | 2026-11-26 |
 
-[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta) ·
+[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0) ·
 [查看全部版本](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases) ·
 [完整更新日志](./CHANGELOG.md)
 
 > [!NOTE]
-> v1.3.8 Beta 修复了 Chrome 后台标签页加载缓慢导致的环境检测和预约时段查询超时。
+> v1.4.0 将预约设置、环境检测和预约日志合并到同一工作台，并改进了登录提示和预约状态展示。
 >
 > 从旧版升级时，请更新原安装目录并在 Chrome 中重新加载扩展。
 
@@ -115,7 +113,7 @@ A better reservation experience for campus life.
 
 工具栏弹窗和工作台都显示环境检测结果和检测时间。绿色表示上次检测正常，红色表示检测异常或等待认证，蓝色表示正在检测，灰色表示待检测，黄色表示上次正常记录已超过 6 小时。
 
-打开工作台时，如果没有近期记录，扩展会尝试后台检测。已有预约计划时，扩展会尝试在预约开始前 15 分钟检测一次。临近准备窗口或任务执行中会跳过自动检测。后台检测发现登录失效时，可点击弹窗的「查看检测」或工作台的「环境检测」恢复校园会话。
+打开工作台时，如果没有近期记录，扩展会尝试后台检测。已有预约计划时，扩展会尝试在预约开始前 15 分钟检测一次。临近准备窗口或任务执行中会跳过自动检测。后台检测发现登录失效时，可打开「环境检测」并选择「从门户检测」恢复校园会话。
 
 扩展将检查预约网页的访问状态、登录会话及实际预约数据。
 
@@ -192,7 +190,7 @@ A better reservation experience for campus life.
 
 ### 7. 查看预约结果
 
-在工具栏弹窗或工作台中查看任务执行状态。
+工具栏弹窗和工作台右上角使用四种带颜色的任务状态：待预约、预约中、预约成功和预约失败。具体结果可在工作台的预约详情或日志中查看。
 
 当结果显示「待核对」时，请先到学校官方平台的「我的预约」核对实际结果。
 
@@ -313,6 +311,7 @@ GitHub Release 中的 Beta、Beta 2 等后缀用于区分不同的公开测试�
 
 | 版本 | 发布类型 | 更新内容 |
 | --- | --- | --- |
+| [v1.4.0](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0) | 正式版 | 统一工作台、登录提示及四种预约状态 |
 | [v1.3.8-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta) | Beta | 修复后台环境检测和时段查询超时 |
 | [v1.3.7-beta](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta) | Beta | 主页环境状态、自动检测、检测后返回和校园会话恢复改进 |
 | [v1.3.4-beta.2](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2) | Beta | 完善项目文档、隐私权政策、服务条款及开发维护规范 |

@@ -22,7 +22,7 @@ let reading = false;
 let lookup;
 let slotError = '';
 
-const { planLabel, mountEnvironmentSummary } = KitchenSummary;
+const { renderPlanStatus, mountEnvironmentSummary } = KitchenSummary;
 
 for (let count = 1; count <= 10; count++) people.add(new Option(count + ' 人', count));
 
@@ -248,7 +248,7 @@ function render() {
       validation = '已选厨房均不符合该时段或人数。';
     }
   }
-  byId('state').textContent = planLabel(plan);
+  renderPlanStatus(plan);
   byId('window').textContent = windowPlan ?
     formatTime(windowPlan.prepareAt) + ' – ' + formatTime(windowPlan.deadline) :
     validation || '请选择日期、时段和厨房';

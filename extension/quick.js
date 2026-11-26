@@ -1,12 +1,11 @@
 (() => {
-  const state = document.getElementById('state');
   const detail = document.getElementById('quick-plan');
   const feedback = document.getElementById('quick-error');
   const buttons = document.querySelectorAll('button[data-view]');
-  const { planLabel, mountEnvironmentSummary } = KitchenSummary;
+  const { renderPlanStatus, mountEnvironmentSummary } = KitchenSummary;
 
   function renderPlan(plan) {
-    state.textContent = planLabel(plan);
+    renderPlanStatus(plan);
     const slot = plan?.date ? plan.date + ' · ' + plan.start + '–' + plan.end : '';
     detail.textContent = [slot, plan?.message].filter(Boolean).join(' · ') || '暂无预约任务。';
   }

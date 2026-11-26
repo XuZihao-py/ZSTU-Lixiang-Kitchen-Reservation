@@ -25,7 +25,7 @@ const phases = {
   'data-read': 3, 'data-empty': 3, ready: 3
 };
 
-const { steps } = KitchenEnvironmentStatus;
+const { steps, loginAdvice } = KitchenEnvironmentStatus;
 
 function updateProgress(level, code) {
   if (Object.hasOwn(phases, code)) phase = phases[code];
@@ -62,6 +62,7 @@ function show(level, code, tabId, data = {}) {
   if (code === 'school-auth' && tabId != null && !retry.disabled) {
     byId('environment-message').textContent = '学校要求重新认证。完成认证后，回到此页点击「重新检测」。';
   }
+  if (level === 'error') byId('environment-message').append(loginAdvice(code));
 }
 
 async function check() {

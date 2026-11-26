@@ -1,12 +1,22 @@
 (() => {
   const labels = {
-    scheduled: '已安排', preparing: '准备中', waiting: '待命', running: '预约中',
-    submitting: '等回执', success: '预约成功', unavailable: '无可约名额', manual: '请到网页查看',
-    uncertain: '待核对', failed: '预约失败', cancelled: '已停止', expired: '已超时'
+    pending: '待预约', running: '预约中', success: '预约成功', failed: '预约失败'
   };
 
-  function planLabel(plan) {
-    return labels[plan?.state] || '未设置';
+  function planStatus(plan) {
+    let level = 'pending';
+    if (plan?.state === 'success') level = 'success';
+    else if (['running', 'submitting', 'uncertain'].includes(plan?.state) ||
+        (plan?.state === 'manual' && plan.commitAt)) level = 'running';
+    else if (['unavailable', 'failed', 'expired', 'manual'].includes(plan?.state)) level = 'failed';
+    return { level, label: labels[level] };
+  }
+
+  function renderPlanStatus(plan) {
+    const status = planStatus(plan);
+    const badge = document.getElementById('state');
+    badge.dataset.level = status.level;
+    if (badge.textContent !== status.label) badge.textContent = status.label;
   }
 
   function mountEnvironmentSummary() {
@@ -36,5 +46,7 @@
     render().catch(console.warn);
   }
 
-  globalThis.KitchenSummary = { planLabel, mountEnvironmentSummary };
+  const api = { planStatus, renderPlanStatus, mountEnvironmentSummary };
+  globalThis.KitchenSummary = api;
+  if (typeof module !== 'undefined') module.exports = api;
 })();

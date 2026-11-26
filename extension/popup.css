@@ -72,6 +72,11 @@ header {
   font-size: 12px;
   white-space: nowrap;
 }
+.state[data-level="pending"] { color: #75501b; background: #fff6e7; border-color: #ebd7b7; }
+.state[data-level="running"] { color: #15457e; background: #edf4fc; border-color: #c7d9f0; }
+.state[data-level="success"] { color: #175936; background: #edf8f1; border-color: #c3dfce; }
+.state[data-level="failed"] { color: #8d2924; background: #fff2f0; border-color: #ecc9c6; }
+
 main { padding-top: 16px; padding-bottom: 16px; }
 fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
 
