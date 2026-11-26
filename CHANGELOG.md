@@ -24,10 +24,19 @@ Beta 版本可能包含尚未完全稳定的功能。
 
 ---
 
-## 1.4.1 开发版本
+## [v1.4.1] — 2026-11-26
 
-- 工具栏弹窗提供运行提示及以后不再提醒选项。
-- 预约日志支持多选或全选并导出详细 TXT 诊断数据。
+发布类型：正式版
+
+扩展内部版本：1.4.1
+
+- 工具栏弹窗新增运行提示，说明预约所需的开机、Chrome、联网和电源设置。可关闭自动提示，并通过「运行提示」再次查看。
+- 预约日志保留可读记录，下载 TXT 时可以选择一个、多个或全部任务。导出内容含事件代码、时间戳、错误详情及运行版本信息，旧记录按已有字段导出。
+- README 新增预约设置、工具栏弹窗、环境检测及日志导出截图。
+
+[查看完整变更](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/compare/v1.4.0...v1.4.1)
+
+---
 
 ## [v1.4.0] — 2026-11-26
 
@@ -345,6 +354,7 @@ Copyright © 2026 Hsu Tzu-hao.
 
 Licensed under the PolyForm Noncommercial License 1.0.0.
 
+[v1.4.1]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.1
 [v1.4.0]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0
 [v1.3.8-beta]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta
 [v1.3.7-beta]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta
