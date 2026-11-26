@@ -90,7 +90,7 @@ A better reservation experience for campus life.
 
 ### 安装步骤 · Installation
 
-1. 进入 [GitHub Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases)，下载对应版本的 **Source code (zip)**。
+1. 进入 [GitHub Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases)，下载对应版本的 ZIP。v1.4.0 可选用[透明图标修订包](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/download/v1.4.0/ZSTU-Lixiang-v1.4.0-transparent-icons.zip)。
 2. 将压缩包解压至固定位置。
 3. 在 Chrome 浏览器中打开 `chrome://extensions/`。
 4. 开启右上角的「开发者模式」。
