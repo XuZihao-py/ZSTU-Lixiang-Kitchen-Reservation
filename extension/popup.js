@@ -22,16 +22,9 @@ let reading = false;
 let lookup;
 let slotError = '';
 
-const labels = {
-  scheduled: '已安排', preparing: '准备中', waiting: '待命', running: '预约中',
-  submitting: '等回执', success: '预约成功', unavailable: '无可约名额', manual: '请到网页查看',
-  uncertain: '待核对', failed: '预约失败', cancelled: '已停止', expired: '已超时'
-};
+const { planLabel, mountEnvironmentSummary } = KitchenSummary;
 
 for (let count = 1; count <= 10; count++) people.add(new Option(count + ' 人', count));
-chrome.tabs.getCurrent().then(tab => {
-  if (tab) document.documentElement.classList.add('tab-view');
-}).catch(console.warn);
 
 function input() {
   const [start = '', end = ''] = selectedSlot.split('~');
@@ -255,7 +248,7 @@ function render() {
       validation = '已选厨房均不符合该时段或人数。';
     }
   }
-  byId('state').textContent = labels[plan?.state] || '未设置';
+  byId('state').textContent = planLabel(plan);
   byId('window').textContent = windowPlan ?
     formatTime(windowPlan.prepareAt) + ' – ' + formatTime(windowPlan.deadline) :
     validation || '请选择日期、时段和厨房';
@@ -354,7 +347,6 @@ for (const control of [consent, byId('checked-previous')]) {
   control.addEventListener('change', render);
 }
 byId('refresh-slots').addEventListener('click', refreshSlots);
-byId('visit').addEventListener('click', () => message('visit'));
 byId('cancel').addEventListener('click', () => message('cancel'));
 function loadSelection(saved) {
   kitchens = (saved.kitchens || []).filter(id => KITCHENS.some(room => room.id === id));
@@ -363,24 +355,7 @@ function loadSelection(saved) {
   people.value = String(saved.people || 1);
 }
 
-let environmentRevision = 0;
-async function renderEnvironmentSummary() {
-  const revision = ++environmentRevision;
-  const [{ environmentResult }, { environmentRun }] = await Promise.all([
-    chrome.storage.local.get('environmentResult'), chrome.storage.session.get('environmentRun')
-  ]);
-  if (revision !== environmentRevision) return;
-  const summary = KitchenEnvironmentStatus.viewStatus(environmentResult, environmentRun);
-  byId('environment-summary').dataset.level = summary.level;
-  byId('home-environment-title').textContent = summary.title;
-  byId('home-environment-detail').textContent = summary.detail +
-    (summary.checkedAt != null ? ' · ' + formatTime(summary.checkedAt) + ' 检测' : '');
-}
-
 chrome.storage.onChanged.addListener((changes, area) => {
-  if ((area === 'local' && changes.environmentResult) || (area === 'session' && changes.environmentRun)) {
-    renderEnvironmentSummary().catch(console.warn);
-  }
   if (area !== 'local' || !changes.plan) return;
   const wasActive = isActive();
   plan = changes.plan.newValue;
@@ -411,5 +386,4 @@ Promise.all([chrome.storage.local.get('plan'), chrome.storage.session.get(['slot
   byId('visit').disabled = false;
 }).catch(error => displayError(error.message));
 
-renderEnvironmentSummary().catch(console.warn);
-chrome.runtime.sendMessage({ kind: 'environment-auto' }).catch(console.warn);
+mountEnvironmentSummary();

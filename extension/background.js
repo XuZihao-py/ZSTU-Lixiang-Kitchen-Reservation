@@ -198,13 +198,35 @@ async function lookupSlots(date) {
   }
 }
 
-function fromPopup(sender) {
-  return sender.url === chrome.runtime.getURL('popup.html');
+function fromWorkbench(sender) {
+  return sender.frameId === 0 && sender.url?.split('#')[0] === chrome.runtime.getURL('popup.html');
+}
+
+function fromQuickPopup(sender) {
+  return sender.url === chrome.runtime.getURL('quick.html');
+}
+
+async function openWorkbench(view) {
+  const workbenchUrl = chrome.runtime.getURL('popup.html');
+  const contexts = await chrome.runtime.getContexts({ contextTypes: ['TAB'], frameIds: [0] });
+  const existing = contexts.find(context => context.documentUrl?.split('#')[0] === workbenchUrl);
+  const route = ['reservation', 'environment', 'logs'].includes(view) ? view : null;
+  if (existing) {
+    await chrome.tabs.update(existing.tabId, {
+      active: true,
+      ...(route ? { url: workbenchUrl + '#' + route } : {})
+    });
+    await chrome.windows.update(existing.windowId, { focused: true });
+  } else {
+    await chrome.tabs.create({ url: workbenchUrl + (route ? '#' + route : '') });
+  }
+  return { ok: true };
 }
 
 async function handle(request, sender) {
+  if (request.kind === 'open-workbench' && fromQuickPopup(sender)) return openWorkbench(request.view);
   const plan = await read();
-  if (fromPopup(sender)) {
+  if (fromWorkbench(sender)) {
     if (request.kind === 'schedule') {
       if (plan && ACTIVE.includes(plan.state)) throw new Error('已有任务，请先停止当前任务。');
       if ((plan?.state === 'uncertain' || (plan?.state === 'manual' && plan.commitAt)) && request.checkedPrevious !== true) {
@@ -225,10 +247,6 @@ async function handle(request, sender) {
     if (request.kind === 'cancel') {
       if (plan?.state === 'submitting') throw new Error('提交已开始，请等候回执。');
       if (plan && ACTIVE.includes(plan.state)) await finish(plan, 'cancelled', '已停止预约任务。');
-      return { ok: true };
-    }
-    if (request.kind === 'visit') {
-      await chrome.tabs.create({ url: chrome.runtime.getURL('environment.html?open=1'), active: true });
       return { ok: true };
     }
   }
@@ -281,9 +299,9 @@ async function handle(request, sender) {
 
 chrome.runtime.onMessage.addListener((request, sender, respond) => {
   let operation;
-  if (request.kind === 'lookup-slots' && fromPopup(sender)) {
+  if (request.kind === 'lookup-slots' && fromWorkbench(sender)) {
     operation = lookupSlots(request.date);
-  } else if (request.kind === 'environment-auto' && fromPopup(sender)) {
+  } else if (request.kind === 'environment-auto' && fromWorkbench(sender)) {
     operation = automaticEnvironment(false);
   } else if (['environment-start', 'environment-update', 'environment-finish'].includes(request.kind) &&
       Number.isInteger(sender.tab?.id) && sender.url?.split(/[?#]/)[0] === chrome.runtime.getURL('environment.html')) {
