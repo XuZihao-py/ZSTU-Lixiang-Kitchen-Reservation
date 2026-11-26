@@ -7,7 +7,7 @@
   const signal = (id, kind) => chrome.tabs.sendMessage(id, { kind }, { frameId: 0 }).catch(() => null);
   const address = tab => tab.pendingUrl || tab.url || '';
 
-  async function recover(initial, owned, publish, mobile, revealBooking) {
+  async function recover(initial, owned, publish, mobile, reveal) {
     const hardDeadline = Date.now() + 165_000;
     let code = 'portal-unreachable';
     let deadline = Date.now() + 14_000;
@@ -40,6 +40,7 @@
       const kind = pageKind(address(tab));
       const route = address(tab);
       if (kind && !await mobile.enable(currentId)) return { code: 'mobile-unavailable' };
+      if (['portal', 'booking'].includes(kind) && !await mobile.keepVisible(currentId)) await reveal(currentId);
 
       if (kind === 'sso') {
         authAt ??= Date.now();
@@ -72,12 +73,15 @@
       }
 
       if (kind === 'booking') {
-        if (/roomReserve\/Index/i.test(route)) await revealBooking(currentId);
         const snapshot = await signal(currentId, 'booking-environment');
         if (snapshot?.state === 'ready') return { code: 'ready', tabId: currentId };
         if (snapshot?.state === 'network') return { code: 'network', tabId: currentId };
         if (snapshot?.state === 'login') {
           step('booking-login', 2600);
+        } else if (/#\/pages\/redirect(?:\?|$)/i.test(route)) {
+          // 等待理享食光完成门户跳转，提前打开直达页会中断会话恢复。
+          step('booking-auth', 30_000);
+          appAt = undefined;
         } else {
           step('booking-return');
           const entry = await signal(currentId, 'environment-entry');
@@ -113,8 +117,9 @@
 
   async function checkEnvironment({ open, portalOnly, previous, publish, owned }) {
     let preserve;
-    let inspected;
     let previousActive;
+    let result;
+    const revealed = new Set();
     const mobile = createMobileSession(chrome.debugger, navigator.userAgent);
     const track = ({ sourceTabId, tabId, url }) => {
       if (owned.has(sourceTabId) && pageKind(url)) owned.add(tabId);
@@ -135,16 +140,15 @@
       owned.add(tab.id);
       if (previousKind === 'booking') await chrome.tabs.remove(previousTab.id).catch(() => {});
 
-      async function revealBooking(id) {
-        if (inspected === id) return;
-        const bookingTab = await getTab(id);
-        if (!bookingTab) return;
-        const [active] = await chrome.tabs.query({ active: true, windowId: bookingTab.windowId });
-        if (active?.id !== id) {
-          previousActive = active?.id;
-          await chrome.tabs.update(id, { active: true }).catch(() => {});
-        }
-        inspected = id;
+      async function reveal(id) {
+        if (revealed.has(id)) return;
+        const tab = await getTab(id);
+        if (!tab) return;
+        revealed.add(id);
+        if (tab.active) return;
+        const [active] = await chrome.tabs.query({ active: true, windowId: tab.windowId });
+        previousActive ??= active;
+        await chrome.tabs.update(id, { active: true }).catch(() => {});
       }
 
       async function verifyIfReady(result) {
@@ -156,6 +160,8 @@
       async function throughPortal() {
         publish('checking', 'portal-unreachable', tab.id);
         if (!await mobile.enable(tab.id)) return { code: 'mobile-unavailable' };
+        // 服务中心在前台加载后才会显示可用入口。
+        await reveal(tab.id);
         if (previousKind !== 'sso') {
           try {
             await chrome.tabs.update(tab.id, { url: PORTAL_URL });
@@ -163,14 +169,14 @@
             return { code: 'portal-unreachable' };
           }
         }
-        return verifyIfReady(await recover(tab.id, owned, publish, mobile, revealBooking));
+        return verifyIfReady(await recover(tab.id, owned, publish, mobile, reveal));
       }
 
-      let result;
       if (reuse || portalOnly) {
         result = await throughPortal();
       } else {
         publish('checking', 'booking-direct', tab.id);
+        if (!await mobile.keepVisible(tab.id)) await reveal(tab.id);
         await chrome.tabs.update(tab.id, { url: BOOKING_URL });
         const code = await inspectBooking(tab.id, Date.now() + 14_000);
         result = await verifyIfReady({ code, tabId: tab.id });
@@ -182,15 +188,16 @@
         preserve = result.tabId;
       }
       if (['school-auth', 'portal-home', 'portal-catalog', 'portal-handoff', 'portal-unreachable',
-        'booking-return', 'booking-login', 'data-read', 'data-empty'].includes(result.code)) {
+        'booking-return', 'booking-auth', 'booking-login', 'data-read', 'data-empty'].includes(result.code)) {
         preserve = result.tabId;
       }
       return { ...result, tabId: preserve };
     } finally {
       navigation.removeListener(track);
       await mobile.close();
-      if (!(open && preserve === inspected) && previousActive != null && (await getTab(inspected))?.active) {
-        await chrome.tabs.update(previousActive, { active: true }).catch(() => {});
+      if (previousActive && !(open && result?.code === 'ready')) {
+        const [active] = await chrome.tabs.query({ active: true, windowId: previousActive.windowId }).catch(() => []);
+        if (owned.has(active?.id)) await chrome.tabs.update(previousActive.id, { active: true }).catch(() => {});
       }
       for (const id of owned) {
         if (id !== preserve) await chrome.tabs.remove(id).catch(() => {});
@@ -199,5 +206,24 @@
     }
   }
 
-  globalThis.KitchenEnvironmentFlow = { checkEnvironment };
+  async function checkAutomatically(publish) {
+    if (navigator.onLine === false) return { code: 'offline' };
+    const tab = await chrome.tabs.create({ url: 'about:blank', active: false });
+    const pageSession = createMobileSession(chrome.debugger, navigator.userAgent);
+    try {
+      await pageSession.keepVisible(tab.id);
+      await chrome.tabs.update(tab.id, { url: BOOKING_URL });
+      const code = await inspectBooking(tab.id, Date.now() + 14_000);
+      if (code === 'login') return { code: 'school-auth' };
+      if (code !== 'ready') return { code };
+      publish('data-read');
+      const report = await verifyData(tab.id);
+      return report.code === 'booking-login' ? { code: 'school-auth' } : report;
+    } finally {
+      await pageSession.close();
+      await chrome.tabs.remove(tab.id).catch(() => {});
+    }
+  }
+
+  globalThis.KitchenEnvironmentFlow = { checkEnvironment, checkAutomatically };
 })();

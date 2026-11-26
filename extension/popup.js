@@ -363,7 +363,24 @@ function loadSelection(saved) {
   people.value = String(saved.people || 1);
 }
 
+let environmentRevision = 0;
+async function renderEnvironmentSummary() {
+  const revision = ++environmentRevision;
+  const [{ environmentResult }, { environmentRun }] = await Promise.all([
+    chrome.storage.local.get('environmentResult'), chrome.storage.session.get('environmentRun')
+  ]);
+  if (revision !== environmentRevision) return;
+  const summary = KitchenEnvironmentStatus.viewStatus(environmentResult, environmentRun);
+  byId('environment-summary').dataset.level = summary.level;
+  byId('home-environment-title').textContent = summary.title;
+  byId('home-environment-detail').textContent = summary.detail +
+    (summary.checkedAt != null ? ' · ' + formatTime(summary.checkedAt) + ' 检测' : '');
+}
+
 chrome.storage.onChanged.addListener((changes, area) => {
+  if ((area === 'local' && changes.environmentResult) || (area === 'session' && changes.environmentRun)) {
+    renderEnvironmentSummary().catch(console.warn);
+  }
   if (area !== 'local' || !changes.plan) return;
   const wasActive = isActive();
   plan = changes.plan.newValue;
@@ -393,3 +410,6 @@ Promise.all([chrome.storage.local.get('plan'), chrome.storage.session.get(['slot
   render();
   byId('visit').disabled = false;
 }).catch(error => displayError(error.message));
+
+renderEnvironmentSummary().catch(console.warn);
+chrome.runtime.sendMessage({ kind: 'environment-auto' }).catch(console.warn);
