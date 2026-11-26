@@ -2,7 +2,7 @@
 
 ZSTU Lixiang Kitchen Reservation
 
-本文件记录理享厨房预约助手的重要功能更新、缺陷修复、兼容性改进、文档维护及公开发布历史。
+本文件记录理享厨房预约助手的重要功能更新、缺陷修复、兼容性改进、视觉设计更新、文档维护及公开发布历史。
 
 ## 版本管理 · Versioning
 
@@ -16,7 +16,9 @@ GitHub Release 标签用于区分正式发布版本及公开测试版本。
 
 Beta 版本可能包含尚未完全稳定的功能。
 
-仅涉及项目文档、政策说明及维护规范的发布，可能沿用相同的扩展内部版本号。
+仅涉及项目文档、视觉资源、政策说明及发布内容的修订，可能沿用相同的扩展内部版本号。
+
+同一版本发生发布修订时，应在更新日志或发布说明中记录相关变更，并以 GitHub Release 中提供的最新正式安装包为准。
 
 完整发布记录请参阅 [GitHub Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases)。
 
@@ -28,12 +30,65 @@ Beta 版本可能包含尚未完全稳定的功能。
 
 扩展内部版本：1.4.0
 
-- 工具栏弹窗展示预约摘要，预约设置、环境检测和预约日志集中到同一个工作台。校园认证后返回工作台，保留预约草稿。
-- 使用新图标标识 Chrome 工具栏和插件标签页。
-- 登录类环境检测报错会提示使用「从门户检测」。
-- 右上角只显示待预约、预约中、预约成功或预约失败，并以颜色区分。预约结果以学校回执为准。
+### 版本概述 · Overview
+
+本版本为理享厨房预约助手正式发布版本。
+
+本次更新重点完善预约工作台、浏览器工具栏快捷入口、校园登录引导、预约状态展示及扩展视觉设计。
+
+### 新增 · Added
+
+- 新增统一预约工作台。
+- 将预约设置、环境检测及预约日志集中至同一个扩展页面。
+- 新增浏览器工具栏快捷弹窗。
+- 支持快速查看预约摘要及环境检测状态。
+- 支持通过快捷入口直接打开工作台中的对应功能。
+- 支持复用已经打开的预约工作台。
+- 支持在同一浏览器会话内恢复预约草稿。
+- 支持校园认证完成后返回预约工作台。
+
+### 界面与视觉设计 · UI & Visual Design
+
+- 采用全新透明背景图标作为扩展默认图标。
+- 提供 16 × 16、24 × 24 和 32 × 32 像素图标资源。
+- 改善图标在 Chrome 浏览器工具栏及扩展标签页中的显示效果。
+- 改善图标对不同浏览器主题的适配。
+- 保留原有工具栏入口及鼠标悬停提示。
+- 优化预约工作台的功能组织及页面切换方式。
+- 简化工具栏弹窗的信息展示。
+
+### 优化 · Improved
+
+- 优化校园登录异常提示。
+- 登录类环境检测异常时，提示用户使用「从门户检测」。
+- 优化校园登录会话恢复后的页面返回流程。
+- 优化预约任务状态展示。
+- 使用不同颜色区分待预约、预约中、预约成功及预约失败。
+- 将详细预约结果及异常信息集中至工作台。
+- 完善预约日志入口及结果反馈流程。
+
+### 发布与安装 · Release & Installation
+
+- 统一正式安装包名称为 `ZSTU-Lixiang-v1.4.0.zip`。
+- 正式安装包默认包含透明背景图标。
+- 透明背景图标不作为独立的可选安装内容。
+- 保持扩展内部版本号为 1.4.0。
+- 不改变原有浏览器权限及核心预约功能。
+- 完善软件安装、更新及版本发布说明。
+
+### 测试说明 · Testing
+
+- 原始正式发布前已通过现有 6 项自动化测试。
+- 已通过 Chromium 模拟环境验证工作台复用、登录提示、预约状态配色及日志导出功能。
+- 透明图标修订涉及视觉资源及相关发布文档，不涉及核心预约逻辑变更。
+
+实际预约结果以学校官方平台回执为准。
+
+[版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0)
 
 [查看完整变更](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/compare/v1.3.8-beta...v1.4.0)
+
+---
 
 ## [v1.3.8-beta] — 2026-11-26
 
@@ -41,12 +96,21 @@ Beta 版本可能包含尚未完全稳定的功能。
 
 扩展内部版本：1.3.8
 
+### 修复 · Fixed
+
 - 修复 Chrome 隐藏标签页延迟渲染导致的环境检测及预约时段查询超时。
 - 手动环境检测、预约前自动检测和日期时段查询会让临时预约页在后台继续渲染。
-- 自动检测和时段查询保留当前标签页。检测或查询结束后，扩展解除临时页的调试连接。
-- 已在 Chromium 模拟预约页验证旧版超时及修复后的读取流程，并验证校园会话跳转。
+- 自动检测和时段查询保留当前标签页。
+- 检测或查询结束后，扩展解除临时页的调试连接。
+
+### 测试说明 · Testing
+
+- 已在 Chromium 模拟预约页验证旧版超时及修复后的读取流程。
+- 已验证校园会话跳转流程。
 
 [查看完整变更](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/compare/v1.3.7-beta...v1.3.8-beta)
+
+---
 
 ## [v1.3.7-beta] — 2026-11-25
 
@@ -54,19 +118,23 @@ Beta 版本可能包含尚未完全稳定的功能。
 
 扩展内部版本：1.3.7
 
-### 环境检测
+### 环境检测 · Environment Check
 
 - 在扩展主页显示最近一次检测的状态、时间和异常位置。
-- 在预约开始前 15 分钟后台检测。打开主页时，若没有检测记录或上次检测已超过 6 小时，也会尝试后台检测。
+- 在预约开始前 15 分钟后台检测。
+- 打开主页时，若没有检测记录或上次检测已超过 6 小时，也会尝试后台检测。
 - 检测通过并保存结果后，可点击「返回预约助手」，在主页查看更新后的状态。
 - 手动恢复会话时，在前台加载数智浙理服务中心，并等待理享食光完成会话跳转后再读取时段。
 
-### 测试说明
+### 测试说明 · Testing
 
 - 已通过模拟页面测试，覆盖自动检测、登录失效、会话跳转和主页状态同步。
-- 已用真实校园会话从「环境检测」入口验证有效时段读取及主页状态更新。「从门户检测」仍可能遇到门户未加载服务导航。
+- 已用真实校园会话从「环境检测」入口验证有效时段读取及主页状态更新。
+- 「从门户检测」仍可能遇到门户未加载服务导航。
 
 [查看完整变更](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/compare/v1.3.4-beta.2...v1.3.7-beta)
+
+---
 
 ## [v1.3.4-beta.2] — 2026-11-25
 
@@ -262,7 +330,9 @@ Beta 版本可能包含尚未完全稳定的功能。
 - [社区讨论](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/discussions)
 - [隐私权政策](./PRIVACY.md)
 - [服务条款](./TERMS.md)
+- [软件许可说明](./LICENSE.md)
 - [软件许可证](./LICENSE)
+- [版权声明](./NOTICE)
 
 ---
 
@@ -270,6 +340,9 @@ Copyright © 2026 Hsu Tzu-hao.
 
 Licensed under the PolyForm Noncommercial License 1.0.0.
 
+[v1.4.0]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0
+[v1.3.8-beta]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta
+[v1.3.7-beta]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.7-beta
 [v1.3.4-beta.2]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta.2
 [v1.3.4-beta]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.4-beta
 [v1.2.3-beta.2]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.2.3-beta.2
