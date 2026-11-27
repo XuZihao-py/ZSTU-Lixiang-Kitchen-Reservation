@@ -21,6 +21,11 @@
   "content_scripts": [
     {
       "matches": ["https://zhst.zstu.edu.cn/statusweb/h5/universityFrontOfficeProgram/*"],
+      "js": ["booking-language.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://zhst.zstu.edu.cn/statusweb/h5/universityFrontOfficeProgram/*"],
       "js": ["rules.js", "booking.js", "environment-check.js"],
       "run_at": "document_idle"
     },
