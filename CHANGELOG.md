@@ -24,10 +24,19 @@ Beta 版本可能包含尚未完全稳定的功能。
 
 ---
 
-## 未发布
+## [v1.4.3] — 2026-11-27
 
-- 共享厨房预约页保留原文，修复 Chrome 自动翻译后日历标题和日期格没有随翻页更新的问题。
-- 修复月末跨月时预约页日历翻页可能停留或跳月的问题，确认目标日期后再读取场次。
+发布类型：正式版
+
+扩展内部版本：1.4.3
+
+- 修复月末翻页可能停留在原月或跳过目标月份的问题。扩展根据实际显示的月份调整翻页，核对目标年月日后再读取场次。
+- 修复 Chrome 自动翻译后月份标题和日期数字停留在旧值的问题。共享厨房预约页保留原文。
+- 增加跨月、跨年、无法翻页及预约页翻译保护的回归测试。
+
+[查看完整变更](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/compare/v1.4.2...v1.4.3)
+
+---
 
 ## [v1.4.2] — 2026-11-27
 
@@ -373,6 +382,7 @@ Copyright © 2026 Hsu Tzu-hao.
 
 Licensed under the PolyForm Noncommercial License 1.0.0.
 
+[v1.4.3]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.3
 [v1.4.2]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.2
 [v1.4.1]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.1
 [v1.4.0]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0

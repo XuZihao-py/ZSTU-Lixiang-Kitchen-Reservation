@@ -4,7 +4,7 @@
 
 ### ZSTU Lixiang Kitchen Reservation
 
-[![Version](https://img.shields.io/badge/Version-1.4.2-brightgreen)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.2)
+[![Version](https://img.shields.io/badge/Version-1.4.3-brightgreen)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.3)
 ![Chrome](https://img.shields.io/badge/Chrome-120%2B-4285F4?logo=googlechrome&logoColor=white)
 ![Manifest](https://img.shields.io/badge/Manifest-V3-brightgreen)
 [![License](https://img.shields.io/badge/License-PolyForm_NC-blue)](./LICENSE)
@@ -83,23 +83,23 @@ A better reservation experience for campus life.
 
 ### 当前发布版本 · Current Release
 
-[![Download](https://img.shields.io/badge/Download-v1.4.2-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.2)
+[![Download](https://img.shields.io/badge/Download-v1.4.3-24292F?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.3)
 
 | 版本信息 | 内容 |
 | --- | --- |
-| 当前发布版本 | v1.4.2 |
-| 扩展内部版本 | 1.4.2 |
+| 当前发布版本 | v1.4.3 |
+| 扩展内部版本 | 1.4.3 |
 | 发布类型 | 正式版 |
 | 发布日期 | 2026-11-27 |
-| 正式安装包 | [ZSTU-Lixiang-v1.4.2.zip](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/download/v1.4.2/ZSTU-Lixiang-v1.4.2.zip) |
+| 正式安装包 | [ZSTU-Lixiang-v1.4.3.zip](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/download/v1.4.3/ZSTU-Lixiang-v1.4.3.zip) |
 | 扩展图标 | 透明背景图标 |
 
-[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.2) ·
+[查看版本发布说明](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.3) ·
 [查看全部版本](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases) ·
 [完整更新日志](./CHANGELOG.md)
 
 > [!NOTE]
-> v1.4.2 修复预约前检测、预约结果待核对时的状态显示，以及环境检测结果到期刷新。
+> v1.4.3 修复月底翻页停留或跳月，以及 Chrome 自动翻译导致日历文字滞留的问题。跨月读取场次前会核对目标年月日。
 >
 > 正式安装包默认包含透明背景图标，无需额外下载图标资源或进行手动配置。
 >
@@ -119,7 +119,7 @@ A better reservation experience for campus life.
 ### 安装步骤 · Installation
 
 1. 进入 [GitHub Releases](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/latest)。
-2. 在 Assets 中下载正式安装包 `ZSTU-Lixiang-v1.4.2.zip`。
+2. 在 Assets 中下载正式安装包 `ZSTU-Lixiang-v1.4.3.zip`。
 3. 将压缩包解压至固定位置。
 4. 在 Chrome 浏览器中打开 `chrome://extensions/`。
 5. 开启右上角的「开发者模式」。
@@ -374,6 +374,7 @@ GitHub Release 中的 Beta、Beta 2 等后缀用于区分不同的公开测试�
 
 | 版本 | 发布类型 | 更新内容 |
 | --- | --- | --- |
+| [v1.4.3](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.3) | 正式版 | 修复月末翻页及 Chrome 自动翻译造成的跨月场次读取失败 |
 | [v1.4.2](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.2) | 正式版 | 预约前检测重试、未确认结果显示及检测结果自动到期 |
 | [v1.4.1](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.1) | 正式版 | 本地运行提示、按任务导出 TXT 诊断日志及界面截图 |
 | [v1.4.0](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0) | 正式版 | 统一工作台、透明背景图标、登录提示及四种预约状态 |
