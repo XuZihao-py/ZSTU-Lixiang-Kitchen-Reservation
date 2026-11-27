@@ -43,6 +43,7 @@
       const advice = waiting ? loginAdvice(run.code) : '';
       return {
         level: waiting ? 'error' : 'checking', title: waiting ? '待统一认证' : '正在检测环境',
+        refreshAt: run.startedAt + runAge,
         detail: (steps[run.code] || steps.failed)[0] + (advice ? '。' + advice : '')
       };
     }
@@ -59,7 +60,8 @@
     if (!isFresh(result, now)) return {
       level: 'stale', title: '建议重新检测', detail: '上次检测正常，结果已超过 6 小时。', checkedAt
     };
-    return { level: 'ready', title: '环境正常', detail: '上次检测已读取有效预约时段。', checkedAt };
+    return { level: 'ready', title: '环境正常', detail: '上次检测已读取有效预约时段。',
+      checkedAt, refreshAt: checkedAt + refreshAge };
   }
 
   const api = { steps, loginAdvice, isFresh, isActive, preflightAt, viewStatus };

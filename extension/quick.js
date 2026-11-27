@@ -7,7 +7,8 @@
   function renderPlan(plan) {
     renderPlanStatus(plan);
     const slot = plan?.date ? plan.date + ' · ' + plan.start + '–' + plan.end : '';
-    detail.textContent = [slot, plan?.message].filter(Boolean).join(' · ') || '暂无预约任务。';
+    const review = plan?.state === 'manual' && plan.commitAt ? '请到「我的预约」核对结果。' : '';
+    detail.textContent = [slot, plan?.message, review].filter(Boolean).join(' · ') || '暂无预约任务。';
   }
 
   let receivedUpdate = false;

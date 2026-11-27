@@ -27,13 +27,13 @@ assert.doesNotMatch(viewStatus({ level: 'error', code: 'network', checkedAt: now
 const { planStatus } = require('../extension/summary.js');
 for (const [states, level, label] of [
   [[undefined, 'scheduled', 'preparing', 'waiting', 'cancelled'], 'pending', '待预约'],
-  [['running', 'submitting', 'uncertain'], 'running', '预约中'],
+  [['running', 'submitting'], 'running', '预约中'],
   [['success'], 'success', '预约成功'],
-  [['unavailable', 'failed', 'expired', 'manual'], 'failed', '预约失败']
+  [['unavailable', 'failed', 'expired', 'manual', 'uncertain'], 'failed', '预约失败']
 ]) {
   for (const state of states) assert.deepEqual(planStatus({ state }), { level, label });
 }
 assert.deepEqual(planStatus(), { level: 'pending', label: '待预约' });
-assert.deepEqual(planStatus({ state: 'manual', commitAt: now }), { level: 'running', label: '预约中' });
+assert.deepEqual(planStatus({ state: 'manual', commitAt: now }), { level: 'failed', label: '预约失败' });
 
 console.log('主页检测提示和预约状态测试通过。');
