@@ -24,6 +24,20 @@ Beta 版本可能包含尚未完全稳定的功能。
 
 ---
 
+## [v1.4.2] — 2026-11-27
+
+发布类型：正式版
+
+扩展内部版本：1.4.2
+
+- 预约前自动检测遇到正在运行的检测时，在预约准备窗口允许的情况下重试。
+- 自动预约已结束、结果仍待核对时，状态徽章结束「预约中」并保留核对提示。
+- 工作台和工具栏在环境检测结果到期时更新颜色，并在页面重新可见时复核状态。
+
+[查看完整变更](https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/compare/v1.4.1...v1.4.2)
+
+---
+
 ## [v1.4.1] — 2026-11-26
 
 发布类型：正式版
@@ -354,6 +368,7 @@ Copyright © 2026 Hsu Tzu-hao.
 
 Licensed under the PolyForm Noncommercial License 1.0.0.
 
+[v1.4.2]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.2
 [v1.4.1]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.1
 [v1.4.0]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.4.0
 [v1.3.8-beta]: https://github.com/XuZihao-py/ZSTU-Lixiang-Kitchen-Reservation/releases/tag/v1.3.8-beta

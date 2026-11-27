@@ -6,6 +6,7 @@ const PREPARE = 'kitchen-prepare';
 const EXPIRE = 'kitchen-expire';
 const START = 'kitchen-start';
 const ENVIRONMENT = 'kitchen-environment';
+const PREFLIGHT_RETRY = 30_000;
 const { steps, isFresh, isActive, preflightAt } = KitchenEnvironmentStatus;
 let pending = Promise.resolve();
 let lookingUp = false;
@@ -64,13 +65,20 @@ async function automaticEnvironment(preflight) {
       const at = preflightAt(plan, now);
       if (at == null || environmentPreflight === plan?.id) return;
       if (at > now) return schedulePreflight(plan);
-      await chrome.storage.session.set({ environmentPreflight: plan.id });
     } else if (isFresh((await chrome.storage.local.get('environmentResult')).environmentResult, now)) {
       return;
     }
-    if (isActive(environmentRun, now)) return;
+    if (isActive(environmentRun, now)) {
+      const retryAt = now + PREFLIGHT_RETRY;
+      if (preflight && preflightAt(plan, retryAt) != null) {
+        await chrome.alarms.create(ENVIRONMENT, { when: retryAt });
+      }
+      return;
+    }
     const next = { id: crypto.randomUUID(), code: 'booking-direct', level: 'checking', startedAt: now };
-    await chrome.storage.session.set({ environmentRun: next });
+    const session = { environmentRun: next };
+    if (preflight) session.environmentPreflight = plan.id;
+    await chrome.storage.session.set(session);
     return next;
   });
   if (!run) return { ok: true };
