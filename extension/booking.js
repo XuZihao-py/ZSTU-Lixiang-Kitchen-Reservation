@@ -109,18 +109,24 @@
       return;
     }
 
-    for (let changes = 0; changes < 2 && displayed !== requested; changes++) {
+    const maxMoves = Math.min(6, Math.abs(requested - displayed) + 3);
+    const monthUnchanged = '预约日历月份未切换。';
+    for (let moves = 0; moves < maxMoves && displayed !== requested; moves++) {
       const direction = displayed < requested ? 'right' : 'left';
       const arrow = find('.uni-calendar--' + direction, () => true);
       if (!arrow) break;
       click(arrow.closest('.uni-calendar__header-btn-box, button') || arrow);
-      const lastMonth = displayed;
-      displayed = await waitFor(() => {
-        const next = calendarMonth();
-        return next !== null && next !== lastMonth ? next : null;
-      }, '预约日历月份未切换。');
+      try {
+        displayed = await waitFor(() => {
+          const next = calendarMonth();
+          return next !== null && next !== displayed ? next : null;
+        }, monthUnchanged, 1_200);
+      } catch (error) {
+        // The site's month arrows can move the internal date within the same month.
+        if (error.message !== monthUnchanged) throw error;
+      }
     }
-    if (displayed !== requested) throw new Error('预约日历未显示目标月份。');
+    if (displayed !== requested) throw new Error('预约日历未显示目标月份，请核对网页日期。');
 
     const firstWeekday = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
     const boxes = all('.uni-calendar-item__weeks-box').filter(visible);

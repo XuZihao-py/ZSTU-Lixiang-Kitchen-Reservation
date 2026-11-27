@@ -15,7 +15,7 @@
   const lab = document.querySelector('main');
   const results = document.querySelector('#results');
   const assert = (condition, message) => { if (!condition) throw new Error(message); };
-  function install(mode, targetDate = '2026-12-01') {
+  function install(mode, targetDate = '2026-12-01', initialDate) {
     let submitted = 0;
     let chosen = '';
     let selected = false;
@@ -41,34 +41,38 @@
     }
     const calendar = () => {
       const [year, month, dayOfMonth] = targetDate.split('-').map(Number);
-      const previousMonth = new Date(Date.UTC(year, month - 2, 1));
+      let shown = new Date(appliedDate || initialDate || new Date(Date.UTC(year, month - 2, 1)));
+      const header = document.createElement('header');
+      header.className = 'uni-calendar__header';
       const pop = document.createElement('section');
       pop.className = 'uni-calendar__content';
       const heading = document.createElement('span');
       heading.className = 'uni-calendar__header-text';
-      heading.textContent = previousMonth.getUTCFullYear() + '年' + (previousMonth.getUTCMonth() + 1) + '月';
       const close = document.createElement('button');
       close.className = 'uni-date-mask';
       close.textContent = '关闭日历';
       close.onclick = () => pop.remove();
-      pop.append(heading, close);
+      pop.append(header, close);
       lab.append(pop);
 
       function renderMonth() {
-        heading.textContent = year + '年' + month + '月';
-        const previousDays = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+        const shownYear = shown.getUTCFullYear();
+        const shownMonth = shown.getUTCMonth() + 1;
+        heading.textContent = shownYear + '年' + shownMonth + '月';
+        pop.querySelectorAll('.uni-calendar-item__weeks-box').forEach(cell => cell.remove());
+        const previousDays = new Date(Date.UTC(shownYear, shownMonth - 1, 1)).getUTCDay();
         for (let index = 0; index < 42; index++) {
           const day = document.createElement('button');
           const number = index - previousDays + 1;
           day.className = 'uni-calendar-item__weeks-box';
-          const monthCells = new Date(Date.UTC(year, month, 0)).getUTCDate();
+          const monthCells = new Date(Date.UTC(shownYear, shownMonth, 0)).getUTCDate();
           day.disabled = number < 1 || number > monthCells;
           const checkedNumber = mode === 'bad-calendar' ? dayOfMonth + 1 : dayOfMonth;
           const mark = appliedDate && number === checkedNumber ? ' uni-calendar-item--checked' : '';
           day.innerHTML = '<span class="uni-calendar-item__weeks-box-text' + mark + '">' +
             (day.disabled ? '' : number) + '</span>';
           day.onclick = () => {
-            assert(number === dayOfMonth, '日历选错了日期');
+            assert(shownYear === year && shownMonth === month && number === dayOfMonth, '日历选错了日期');
             appliedDate = targetDate;
             pop.remove();
             if (mode === 'same-date') return;
@@ -83,13 +87,24 @@
           pop.append(day);
         }
       }
-      if (appliedDate) renderMonth();
-      else {
-        const next = document.createElement('button');
-        next.innerHTML = '<span class="uni-calendar--right">次月</span>';
-        next.onclick = () => { next.remove(); renderMonth(); };
-        pop.append(next);
+      function monthButton(direction, step) {
+        const button = document.createElement('button');
+        button.className = 'uni-calendar__header-btn-box';
+        const arrow = document.createElement('span');
+        arrow.className = 'uni-calendar--' + direction;
+        arrow.textContent = direction === 'left' ? '上月' : '次月';
+        button.append(arrow);
+        button.onclick = () => {
+          if (mode === 'stuck-month') return;
+          // Match the site's picker, which can stay in the same month or skip a month.
+          if (shown.getUTCDate() === 31) shown.setUTCDate(shown.getUTCDate() + step);
+          else shown.setUTCMonth(shown.getUTCMonth() + step);
+          renderMonth();
+        };
+        return button;
       }
+      header.append(monthButton('left', -1), heading, monthButton('right', 1));
+      renderMonth();
     };
     showList();
     window.onhashchange = event => {
@@ -195,18 +210,34 @@
       assert(info().submitted === count, '提交次数错误');
       await new Promise(resolve => setTimeout(resolve, 20));
     }
-    for (const [mode, date, expected] of [
+    for (const [mode, date, expected, initialDate] of [
       ['weekend', '2026-11-28', ['10:30~13:00', '16:00~18:30']],
       ['weekday', '2026-11-30', ['16:00~18:30']],
-      ['same-date', '2026-11-30', ['16:00~18:30']]
+      ['same-date', '2026-11-30', ['16:00~18:30']],
+      ['weekday', '2027-02-03', ['16:00~18:30'], '2027-03-31'],
+      ['weekend', '2027-02-06', ['10:30~13:00', '16:00~18:30'], '2027-01-30'],
+      ['weekday', '2027-01-01', ['16:00~18:30'], '2026-12-31'],
+      ['weekday', '2027-03-02', ['16:00~18:30'], '2027-01-31']
     ]) {
-      const { info } = install(mode, date);
-      const rooms = await KitchenBooking.peekSlots(date, Date.now() + 10_000);
+      const { info } = install(mode, date, initialDate);
+      const rooms = await KitchenBooking.peekSlots(date, Date.now() + 14_000).catch(error => {
+        throw new Error('读取 ' + date + ' 的场次失败：' + error.message);
+      });
       const options = KitchenPlan.listedSlots(rooms, ['XS-03'], 9);
-      assert(JSON.stringify(options) === JSON.stringify(expected), mode + '时段来源错误');
+      assert(JSON.stringify(options) === JSON.stringify(expected), date + ' ' + mode + ' 时段来源错误');
       assert(info().chosen === '' && info().submitted === 0, '读取时段操作进入了预约表单');
     }
-    results.textContent = 'PASS: real slot labels, calendar verification, mismatched form, fallback, no duplicate, receipt';
+    const blocked = install('stuck-month', '2027-02-03', '2027-01-30');
+    let monthError;
+    try {
+      await KitchenBooking.peekSlots(blocked.plan.date, Date.now() + 14_000);
+    } catch (error) {
+      monthError = error;
+    }
+    assert(monthError?.message.includes('目标月份'), '未到目标月份时必须拒绝读取场次');
+    assert(blocked.info().submitted === 0 && blocked.info().chosen === '', '月份未确认时打开了表单');
+
+    results.textContent = 'PASS: real slot labels, month-end and year rollover, calendar verification, mismatched form, fallback, no duplicate, receipt';
   } catch (error) {
     results.textContent = 'FAIL: ' + error.stack;
   }
